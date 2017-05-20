@@ -1,4 +1,191 @@
-#nesesitan listas enlazadas y nodos..
+class _Nodo():
+	"""Clase que representa un elemento de lista enlazada"""
+	def __init__(self, dato=None, prox=None):
+		"""Pre: recibe un dato a almacenar, y una referencia al proximo Nodo.
+		Post: su estado inicial, son estos dos atributos recibidos."""
+
+		self.dato = dato
+		self.prox = prox
+
+	def __str__(self):
+		"""Devuelve una reprentacion (cadena) informal del Nodo"""
+		return str(self.dato)
+
+	def __repr__(self):
+		"""Devuelve una reprentacion (cadena) formal del Nodo"""
+		return str(self)
+#-----------------------------------------------------------------------------------
+
+class ListaEnlazada():
+	"""Representa una lista de elementos enlazados"""
+	def __init__(self):
+		self.prim = None
+		self.ult = None
+		self.len = 0
+
+	def __len__(self):
+		"""Devuelve el largo de la lista (Entero)"""
+		return self.len 
+	
+	def __str__(self):
+		"""Devuelve una representacion en cadena de texto de la lista"""
+		cadena = []
+		actual = self.prim
+		while actual:
+			if type(actual.dato) == str:
+				cadena.append("'" + str(actual.dato) + "'")
+			else:	
+				cadena.append(str(actual.dato))
+			actual = actual.prox
+
+		return "[" + ", ".join(cadena) + "]"
+
+	def __repr__(self):
+		"""Devuelve un representacion formal en cadena de texto de la lista"""
+		return str(self)
+
+	def append(self, dato):
+		nodo = _Nodo(dato)
+
+		if self.len == 0:
+			self.prim = nodo
+		
+		if self.ult :
+			self.ult.prox = nodo
+		
+		self.ult = nodo
+
+		self.len += 1
+
+	def _insertar_prim(self, dato):
+		"""Inserta un dato en la primera posicion"""
+		nodo = _Nodo(dato)
+		
+		if self.len == 0:
+			self.prim = nodo
+			self.ult = nodo
+			self.len += 1
+			return
+
+		nodo.prox = self.prim
+		self.prim = nodo
+
+		self.len += 1
+
+	def insert(self,dato,posicion=0):
+		"""Inserta un elemento en la posicion indicada"""
+		if posicion <= 0 or self.len == 0:
+			self._insertar_prim(dato)
+			return
+
+		if posicion >= self.len - 1:
+			self.append(dato)
+			return
+
+		actual = self.prim
+		i = 0
+		while actual and (i < (posicion - 1)):
+			actual = actual.prox
+			i += 1
+
+		nodo = _Nodo(dato)
+		
+		nodo.prox = actual.prox
+		actual.prox = nodo
+
+		self.len += 1
+
+	def _borrar_prim(self):
+		"""Elimina el primer elemento de la lista"""
+		
+		if self.len == 0:
+			raise ValueError("La lista esta vacia")
+
+		dato = self.prim.dato
+		self.prim = self.prim.prox
+
+		if not self.prim:
+			self.ult = None
+
+		self.len -= 1
+
+		return dato
+	
+	def pop(self, posicion = None):
+		"""Elimina el elemento de la posicion indicada, si no 
+		se especifica una posicion, borra el ultimo elemento"""
+
+		if (posicion == 0) or (self.len == 0):
+			dato = self._borrar_prim()
+			return dato
+
+		if not posicion:
+			posicion = self.len - 1
+
+		actual = self.prim
+		i = 0
+
+		while actual and (i < posicion - 1):
+			actual = actual.prox 
+			i += 1
+
+		dato = actual.prox.dato
+
+		actual.prox = actual.prox.prox
+
+		if posicion == self.len - 1:
+			self.ult = actual
+
+		self.len -= 1
+
+		return dato
+
+	def remove(self, item):
+		"""Remueve la primera aparacion del item recibido en la lista"""
+
+		if self.len == 0:
+			raise ValueError("Lista vacia")
+
+		if self.prim.dato == item:
+			self._borrar_prim()
+			return
+
+
+		anterior = self.prim
+		actual = anterior.prox
+
+		while actual and actual.dato != item:
+			anterior = anterior.prox
+			actual = actual.prox
+
+		if not actual:
+			raise ValueError("El elemento no esta en la lista")
+
+		if actual.prox == None:
+			self.ult = anterior
+
+		anterior.prox = actual.prox
+
+		self.len -= 1 
+
+	def index(self, item):
+		"""Devuelve el indice (entero) del elemento recibido."""
+		i = 0
+		
+		if self.prim.dato == item:
+			return i
+
+		actual = self.prim
+
+		while actual and actual.dato != item:
+			actual = actual.prox
+			i += 1
+
+		if not actual:
+			raise ValueError("Elemento no encontrado")
+
+		return i 
+#-----------------------------------------------------------------------------------
 
 class Pila():
 	"""Clase que representa una pila."""
@@ -39,8 +226,8 @@ class Pila():
 		if self.esta_vacia():
 			raise ValueError("La pila esta vacia")
 		
-		print(self.items[-1])
-
+		return self.items[-1]
+#-----------------------------------------------------------------------------------
 
 class MarcaDeTiempo: #doc
 	"""Representa una marca de tiempo que contiene canales en los cuales se hebilitan
@@ -61,6 +248,7 @@ class MarcaDeTiempo: #doc
 	def track_off(self, track):
 		"""Desabilita el numero de track de la marca de tiempo."""
 		self.tracks[track] = False
+#-----------------------------------------------------------------------------------
 
 class Iterador: #doc.  #creo que no es nesesario self.siguiente
 	"""Representa un iterador que va y vuelve."""
@@ -91,6 +279,7 @@ class Iterador: #doc.  #creo que no es nesesario self.siguiente
 		self.actual = self.anterior
 		self.anterior = self.pila_anteriores.desapilar()
 		return self.actual
+#-----------------------------------------------------------------------------------
 
 class Cursor: #doc
 	"""Representa un cursor que recorre una lista enlazada..."""
@@ -137,6 +326,7 @@ class Cursor: #doc
 		self.actual = self.iterador.anterior()
 		mark_add(duracion)
 		self.actual = self.iterador.proximo()
-
+#-----------------------------------------------------------------------------------
 class Reproductor:
+	pass
 

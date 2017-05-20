@@ -1,4 +1,46 @@
-#nesesitan pilas, listas enlazadas y nodos..
+#nesesitan listas enlazadas y nodos..
+
+class Pila():
+	"""Clase que representa una pila."""
+	def __init__(self):
+		"""
+		Crea una pila vacia.
+		Atributos: items (lista de python vacia).
+		"""
+		self.items = []
+
+	def esta_vacia(self):
+		"""
+		Evalua si no hay elementos en la pila. 
+		Devuelve un booleano.
+		"""
+		return len(self.items) == 0
+
+	def apilar(self, item):
+		"""
+		Pre: recibe un item.
+		Post: apila este item en la lista.
+		"""
+		self.items.append(item)
+
+	def desapilar(self):
+		"""
+		Desapila y devuelve el ultimo item ingresado en la pila.
+		"""
+		if self.esta_vacia():
+			raise ValueError("La pila esta vacia.")
+		return self.items.pop()
+
+	def ver_tope(self):
+		"""
+		Imprime un representacion del ultimo iterm ingresado.
+		"""
+		
+		if self.esta_vacia():
+			raise ValueError("La pila esta vacia")
+		
+		print(self.items[-1])
+
 
 class MarcaDeTiempo: #doc
 	"""Representa una marca de tiempo que contiene canales en los cuales se hebilitan

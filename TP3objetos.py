@@ -230,16 +230,16 @@ class Pila():
 #-----------------------------------------------------------------------------------
 
 class MarcaDeTiempo: #doc
-	"""Representa una marca de tiempo que contiene canales en los cuales se hebilitan
+	"""Representa una marca de tiempo que contiene canales en los cuales se habilitan
 	o desabilitan los tracks."""
 	def __init__(self, tiempo, canales):
 		"""Crea una marca de tiempo con el tiempo de duracion y la cantidad 
 		de canales indicado."""
 		self.tiempo = tiempo
-		self.tracks = {}
-		self.canales = int(canales) # creo que no es nesesario
+		self.tracks = []
+		self.canales = int(canales) 
 		for track in range(1, canales+1):
-			self.tracks[track] = False
+			self.tracks.append(False)
 
 	def track_on(self, track):
 		"""Habilita el numero de track de la marca de tiempo."""
@@ -250,7 +250,7 @@ class MarcaDeTiempo: #doc
 		self.tracks[track] = False
 #-----------------------------------------------------------------------------------
 
-class Iterador: #doc.  #creo que no es nesesario self.siguiente
+class Iterador: #doc. 
 	"""Representa un iterador que va y vuelve."""
 	def __init__(self, lista_enlazada):
 		"""Crea un iterador para una lista enlazada que la puede recorrer 
@@ -258,27 +258,36 @@ class Iterador: #doc.  #creo que no es nesesario self.siguiente
 		self.lista = lista_enlazada
 		self.anterior = None
 		self.actual = lista_enlazada.prim
-		self.siguiente = lista_enlazada.prim.prox
 		self.pila_anteriores = Pila()
 
 	def proximo(self):
 		"""Pasa al siguiente elemento de la lista."""
-		if not self.siguiente:
-			return #return self.actual??
+		if not self.actual.prox:
+			return self.actual#return self.actual??
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual
-		self.actual = self.siguiente
-		self.siguiente = self.siguiente.prox
+		self.actual = self.actual.prox
 		return self.actual
 
 	def anterior(self):
 		"""Vuelve al elemento anterior de la lista."""
 		if self.pila_anteriores.esta_vacia():
-			return #return self.actual??
-		self.siguiente = self.actual
+			return self.actual#return self.actual??
 		self.actual = self.anterior
 		self.anterior = self.pila_anteriores.desapilar()
 		return self.actual
+
+	def insertar(self, dato):
+		"""Inserta un elemento en la pocision actual del iterador."""
+		if self.lista.len == 0 or self.anterior == None:
+			 self.lista._insertar_prim(dato)
+			 self.actual = self.lista.prim
+			 return
+		nodo = _Nodo(dato)
+		self.anterior.prox = nodo
+		nodo.prox = self.actual
+		self.actual = nodo
+
 #-----------------------------------------------------------------------------------
 
 class Cursor: #doc
@@ -289,6 +298,7 @@ class Cursor: #doc
 		self.iterador = Iterador(lista)
 		self.actual = lista.prim
 		self.pocision = 0
+		self.reproducor = Reproductor(lista)
 
 	def step(n = 1):
 		"""Avanza n veces por la lista."""
@@ -309,8 +319,7 @@ class Cursor: #doc
 		con la duracion indicada."""
 		canales = self.actual.canales
 		dato = MarcaDeTiempo(duracion, canales)
-		pocision = self.pocision
-		self.lista.insert(dato, pocision)
+		self.iterador.insertar(dato)
 		self.actual = self.iterador.proximo()
 
 	def mark_add_next(self, duracion):
@@ -326,7 +335,38 @@ class Cursor: #doc
 		self.actual = self.iterador.anterior()
 		mark_add(duracion)
 		self.actual = self.iterador.proximo()
+
+	def reproducir_actual(self):
+		"""Reproduce la marca de tiempo en el que se encuentra el cursor."""
+		marca_de_tiempo = self.actual
+		self.reproducor.sonar(marca_de_tiempo)
+
+	def reproducir_todo(self): #con un iterador "reciclable"
+		"""Reproduce toda la cancion representada por la lista."""
+
+
+
 #-----------------------------------------------------------------------------------
-class Reproductor:
-	pass
+
+
+class Reproductor: #doc
+	"""Representa un reproductor de sonidos."""
+	def __init__(self, lista_de_tracks):
+		"""Crea el reproductor de sonidos a partir de una lista de elementos de la 
+		clase Track."""
+		self.lista_tracks = lista_de_tracks
+
+	def sonar(self, marca_tiempo):
+		"""Reproduce los tracks habilitados en una marca de tiempo
+		(la cual debe ser de la clase MarcaDeTiempo)."""
+		tiempo = marca_tiempo.tiempo
+		canales = marca_tiempo.canales
+		for i in range(canales):
+			estado_track = marca_tiempo.tracks[i]
+			if estado_track:
+				track = self.lista_tracks[i]
+				sonido = track.sonido
+				sp = pysounds.SoundPlayer(2)
+				sp.play_sounds(sonido, tiempo)
+
 

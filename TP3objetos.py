@@ -348,7 +348,7 @@ class Cursor: #doc
 		self.iterador = Iterador(lista)
 		self.actual = lista.prim
 		self.pocision = 0
-		self.reproducor = Reproductor(lista)
+		self.reproductor = Reproductor(lista)
 
 	def step(n = 1):
 		"""Avanza n veces por la lista."""
@@ -389,7 +389,7 @@ class Cursor: #doc
 	def reproducir_actual(self):
 		"""Reproduce la marca de tiempo en el que se encuentra el cursor."""
 		marca_de_tiempo = self.actual
-		self.reproducor.sonar(marca_de_tiempo)
+		self.reproductor.sonar(marca_de_tiempo)
 
 	def reproducir_todo(self): #con un iterador "reciclable"
 		"""Reproduce toda la cancion representada por la lista."""
@@ -403,18 +403,15 @@ class Reproductor: #doc
 		clase Track."""
 		self.lista_tracks = lista_de_tracks
 
-	def sonar(self, marca_tiempo):
-		"""Reproduce los tracks habilitados en una marca de tiempo
-		(la cual debe ser de la clase MarcaDeTiempo)."""
-		tiempo = marca_tiempo.tiempo
-		canales = marca_tiempo.canales
-		for i in range(canales):
-			estado_track = marca_tiempo.tracks[i]
-			if estado_track:
-				track = self.lista_tracks[i]
-				sonido = track.sonido
-				sp = pysounds.SoundPlayer(2)
-				sp.play_sounds(sonido, tiempo)
+	def sonar(self, tiempo, canales):
+		"""
+		Pre: recibe un tiempo en segundos, y la cantidad de canales (ambos enteros).
+		Post: reproduce los tracks en el tiempo dado.
+		"""
+		tiempo = int(tiempo)
+		canales = int(canales)
+		sp = soundPlayer.SoundPlayer(canales)
+		sp.play_sounds(self.lista_tracks, tiempo)
 #-----------------------------------------------------------------------------------
 
 
@@ -438,7 +435,7 @@ class Track():
 		creado por la funcion a traves de los parametros.
 		"""
 		frecuencia = int(frecuencia)
-		volumen = int(volumen)
+		volumen = float(volumen)
 		
 		if not funcion_sonido in FUNCIONES_SONIDO:
 			raise ValueError("Funcion invalida")
@@ -449,4 +446,8 @@ class Track():
 			return
 		
 		self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen)
+	
+	def devolver_sonido(self):
+		"""Devuelve el sonido almacenado en el track"""
+		return self.sonido
 #-----------------------------------------------------------------------------------

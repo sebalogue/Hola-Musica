@@ -395,9 +395,11 @@ class Cursor: #doc
 		mark_add(duracion)
 		self.actual = self.iterador.proximo()
 
-	def reproducir_actual(self):
+	def reproducir_marca(self, marca = None):
 		"""Reproduce la marca de tiempo en el que se encuentra el cursor."""
-		marca_de_tiempo = self.actual
+		marca_de_tiempo = marca
+		if marca is None:
+			marca_de_tiempo = self.actual
 		habilitados = marca_de_tiempo.tracks_habilitados()
 		tiempo = marca_de_tiempo.dar_tiempo()
 		self.reproductor.sonar(tiempo, habilitados)
@@ -406,10 +408,33 @@ class Cursor: #doc
 		"""Reproduce toda la cancion representada por la lista."""
 		marca_de_tiempo = self.lista.prim
 		while marca_de_tiempo:
-			habilitados = marca_de_tiempo.tracks_habilitados()
-			tiempo = marca_de_tiempo.dar_tiempo()
-			self.reproductor.sonar(tiempo, habilitados)
+			reproducir_marca(marca_de_tiempo)
 			marca_de_tiempo = marca_de_tiempo.prox
+
+	def reproducir_hasta(self, marca):
+		"""Reproduce desde la marca de tiempo actual hasta la marca dada por parametro."""
+		marca_actual = self.actual
+		pos_actual = self.pocision
+		if marca < pos_actual:
+			return
+		i = 0
+		while i =< marca and marca_actual:
+			reproducir_marca(marca_actual)
+			marca_actual = marca_actual.prox
+			i += 1
+	def reproducir_segundos(self, segundos):
+		"""Reproduce los proximos segundos dados por parametro 
+		desde la posicion actual del cursor."""
+		marca_actual = self.actual
+		tiempo_marca = marca_actual.dar_tiempo()
+		segundos = float(segundos)
+		while segundos >= tiempo_marca and marca_actual:
+			reproducir_marca(marca_actual)
+			marca_actual = marca_actual.prox
+			tiempo_marca = marca_actual.dar_tiempo()
+			segundos -= tiempo_marca
+
+
 
 #-----------------------------------------------------------------------------------
 

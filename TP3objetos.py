@@ -239,7 +239,7 @@ class MarcaDeTiempo: #doc
 	def __init__(self, tiempo, canales):
 		"""Crea una marca de tiempo con el tiempo de duracion y la cantidad 
 		de canales indicado."""
-		self.tiempo = tiempo
+		self.tiempo = float(tiempo)
 		self.tracks = []
 		self.canales = int(canales) 
 		for track in range(1, canales+1):
@@ -252,6 +252,16 @@ class MarcaDeTiempo: #doc
 	def track_off(self, track):
 		"""Desabilita el numero de track de la marca de tiempo."""
 		self.tracks[track] = False
+
+	def tracks_habilitados(self):
+		"""Devuelve los numeros de los tracks habilitados en la marca de tiempo.""" 
+		return [num for num, track in enumerate(lista) if track]
+
+	def dar_tiempo(self):
+		"""Devuelve el tiempo de duracion de la marca de tiempo."""
+		return self.tiempo
+
+
 #-----------------------------------------------------------------------------------
 
 
@@ -303,6 +313,7 @@ class IteradorListaEnlazada: #doc.
 		nodo.prox = self.actual
 		self.actual = nodo
 		self.lista.len += 1
+
 #-----------------------------------------------------------------------------------
 
 
@@ -310,10 +321,11 @@ class Cursor: #doc
 	"""Representa un cursor que recorre las marcas de tiempo de una cancion"""
 	def __init__(self, cancion):
 		"""Crea el cursor."""
+		self.lista = cancion #Solucionar
 		self.iterador = IteradorListaEnlazada(cancion)
 		self.actual = self.iterador.elemento_actual()
 		self.posicion = 0
-		self.reproductor = Reproductor(lista)
+		self.reproductor = Reproductor(cancion) #Solucionar
 
 	def step(n = 1):
 		"""Avanza n veces por la lista."""
@@ -337,31 +349,64 @@ class Cursor: #doc
 		canales = self.actual.canales
 		dato = MarcaDeTiempo(duracion, canales)
 		self.iterador.insertar(dato)
-		self.actual = self.iterador.proximo()
+		self.actual = self.iterador.avanzar()
 
 	def mark_add_next(self, duracion):
 		"""Agrega una marca de tiempo en la posicion siguiente del cursor
 		con la duracion indicada."""
-		self.actual = self.iterador.proximo()
+		self.actual = self.iterador.avanzar()
 		mark_add(duracion)
-		self.actual = self.iterador.anterior()
+		self.actual = self.iterador.retroceder()
 
 	def mark_add_prev(self, duracion):
 		"""Agrega una marca de tiempo en la posicion anterior del cursor
 		con la duracion indicada."""
-		self.actual = self.iterador.anterior()
+		self.actual = self.iterador.retroceder()
 		mark_add(duracion)
-		self.actual = self.iterador.proximo()
+		self.actual = self.iterador.avanzar()
 
-	def reproducir_actual(self):
+	def reproducir_marca(self, marca = None):
 		"""Reproduce la marca de tiempo en el que se encuentra el cursor."""
-		marca_de_tiempo = self.actual
-		self.reproductor.sonar(marca_de_tiempo)
+		marca_de_tiempo = marca
+		if marca is None:
+			marca_de_tiempo = self.actual
+		habilitados = marca_de_tiempo.tracks_habilitados() #solucionar 
+		tiempo = marca_de_tiempo.dar_tiempo()			   #Los tracks hablitados no le dan al reproductor los sonidos 
+		self.reproductor.sonar(tiempo, habilitados)		   #sacar de la clase principal(a crear)
 
-	def reproducir_todo(self): #con un iterador "reciclable"
+	def reproducir_todo(self):
 		"""Reproduce toda la cancion representada por la lista."""
-#-----------------------------------------------------------------------------------
+		marca_de_tiempo = self.lista.prim
+		while marca_de_tiempo:
+			reproducir_marca(marca_de_tiempo)
+			marca_de_tiempo = marca_de_tiempo.prox
 
+	def reproducir_hasta(self, marca):
+		"""Reproduce desde la marca de tiempo actual hasta la marca dada por parametro."""
+		marca_actual = self.actual
+		pos_actual = self.pocision
+		if marca < pos_actual:
+			return
+		i = 0
+		while i =< marca and marca_actual:
+			reproducir_marca(marca_actual)
+			marca_actual = marca_actual.prox
+			i += 1
+	def reproducir_segundos(self, segundos):
+		"""Reproduce los proximos segundos dados por parametro 
+		desde la posicion actual del cursor."""
+		marca_actual = self.actual
+		tiempo_marca = marca_actual.dar_tiempo()
+		segundos = float(segundos)
+		while segundos >= tiempo_marca and marca_actual:
+			reproducir_marca(marca_actual)
+			marca_actual = marca_actual.prox
+			tiempo_marca = marca_actual.dar_tiempo()
+			segundos -= tiempo_marca
+
+
+
+#-----------------------------------------------------------------------------------
 
 class Reproductor: #doc
 	"""Representa un reproductor de sonidos."""
@@ -375,7 +420,7 @@ class Reproductor: #doc
 		Pre: recibe un tiempo en segundos, y la cantidad de canales (ambos enteros).
 		Post: reproduce los tracks en el tiempo dado.
 		"""
-		tiempo = int(tiempo)
+		tiempo = float(tiempo) 
 		canales = int(canales)
 		sp = soundPlayer.SoundPlayer(canales)
 		sp.play_sounds(self.lista_tracks, tiempo)

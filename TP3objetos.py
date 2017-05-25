@@ -1,6 +1,6 @@
 import soundPlayer
-
 #-----------------------------------------------------------------------------------
+
 
 class _Nodo():
 	"""Clase que representa un elemento de lista enlazada"""
@@ -8,7 +8,6 @@ class _Nodo():
 	def __init__(self, dato=None, prox=None):
 		"""Pre: recibe un dato a almacenar, y una referencia al proximo Nodo.
 		Post: su estado inicial, son estos dos atributos recibidos."""
-
 		self.dato = dato
 		self.prox = prox
 
@@ -20,6 +19,7 @@ class _Nodo():
 		"""Devuelve una reprentacion (cadena) formal del Nodo"""
 		return str(self)
 #-----------------------------------------------------------------------------------
+
 
 class ListaEnlazada():
 	"""Representa una lista de elementos enlazados"""
@@ -37,18 +37,15 @@ class ListaEnlazada():
 		return self.len 
 	
 	def __str__(self):
-		"""Devuelve una representacion en cadena de texto de la lista"""
-		
+		"""Devuelve una representacion en cadena de texto de la lista"""		
 		cadena = []
-		actual = self.prim
-		
+		actual = self.prim		
 		while actual:
 			if type(actual.dato) == str:
 				cadena.append("'" + str(actual.dato) + "'")
 			else:	
 				cadena.append(str(actual.dato))
 			actual = actual.prox
-
 		return "[" + ", ".join(cadena) + "]"
 
 	def __repr__(self):
@@ -56,136 +53,98 @@ class ListaEnlazada():
 		return str(self)
 
 	def _insertar_prim(self, dato):
-		"""Inserta un dato en la primera posicion"""
-		
-		nodo = _Nodo(dato)
-		
+		"""Inserta un dato en la primera posicion"""		
+		nodo = _Nodo(dato)		
 		if self.len == 0:
 			self.prim = nodo
 			self.len += 1
 			return
-
 		nodo.prox = self.prim
 		self.prim = nodo
-
 		self.len += 1
 
 	def insert(self, posicion, dato):
-		"""Inserta un elemento en la posicion indicada"""
-		
+		"""Inserta un elemento en la posicion indicada"""	
 		if posicion < 0 or posicion > self.len:
 			raise IndexError("Indice fuera de rango")
-
 		if posicion == 0 or self.len == 0:
 			self._insertar_prim(dato)
 			return
-
 		actual = self.prim
 		i = 0
-
 		while actual and (i < (posicion - 1)):
 			actual = actual.prox
 			i += 1
-
 		nodo = _Nodo(dato)
-		
 		nodo.prox = actual.prox
 		actual.prox = nodo
-
 		self.len += 1
 
 	def append(self, dato):
 		self.insert(self.len, dato)
 
 	def _borrar_prim(self):
-		"""Elimina el primer elemento de la lista"""
-		
+		"""Elimina el primer elemento de la lista"""		
 		if self.len == 0:
 			raise ValueError("Lista vacia")
-
 		dato = self.prim.dato
 		self.prim = self.prim.prox
-
 		self.len -= 1
-
 		return dato
 	
 	def pop(self, posicion = None):
 		"""Elimina el elemento de la posicion indicada, si no 
 		se especifica una posicion, borra el ultimo elemento"""
-
 		if posicion is None:
 			posicion = self.len - 1
-
 		if (posicion < 0) or (posicion >= self.len):
 			raise IndexError("Indice fuera de rango")
-
 		if (posicion == 0) or (self.len == 0):
 			dato = self._borrar_prim()
 			return dato
-
-
 		actual = self.prim
 		i = 0
-
 		while actual and (i < posicion - 1):
 			actual = actual.prox 
 			i += 1
-
 		dato = actual.prox.dato
-
 		actual.prox = actual.prox.prox
-
 		self.len -= 1
-
 		return dato
 
 	def remove(self, item):
 		"""Remueve la primera aparacion del item recibido en la lista"""
-
 		if self.len == 0:
 			raise ValueError("Lista vacia")
-
 		if self.prim.dato == item:
 			self._borrar_prim()
 			return
-
-
 		anterior = self.prim
 		actual = anterior.prox
-
 		while actual and actual.dato != item:
 			anterior = anterior.prox
 			actual = actual.prox
-
 		if not actual:
 			raise ValueError("Elemento no encontrado")
-
 		anterior.prox = actual.prox
-
 		self.len -= 1 
 
 	def index(self, item):
 		"""Devuelve el indice (entero) del elemento recibido."""
-		i = 0
-		
+		i = 0		
 		if not self.len:
 			raise ValueError("Lista vacia")
-
 		if self.prim.dato == item:
 			return i
-
 		actual = self.prim
-
 		while actual and actual.dato != item:
 			actual = actual.prox
 			i += 1
-
 		if not actual:
 			raise ValueError("Elemento no encontrado")
-
 		return i 
 #-----------------------------------------------------------------------------------
+
 
 class Pila():
 	"""Clase que representa una pila."""
@@ -221,13 +180,13 @@ class Pila():
 	def ver_tope(self):
 		"""
 		Imprime un representacion del ultimo iterm ingresado.
-		"""
-		
+		"""	
 		if self.esta_vacia():
 			raise ValueError("Pila vacia")
 		
 		return self.items[-1]
 #-----------------------------------------------------------------------------------
+
 
 class Cola():
 	"""Clase que representa una cola representa una cola."""
@@ -246,12 +205,10 @@ class Cola():
 	def encolar(self, dato):
 		"""Encola el dato recicido."""
 		nodo = _Nodo(dato)
-
 		if self.ultimo:
 			self.ultimo.prox = nodo
 			self.ultimo = nodo
 			return
-
 		self.primero = nodo
 		self.ultimo = nodo
 
@@ -259,17 +216,13 @@ class Cola():
 		"""
 		Desencola el primer elemento de 
 		la cola y devuelve su valor.
-		"""
-		
+		"""		
 		if self.esta_vacia():
 			raise ValueError("Cola vacia")
-
-		dato = self.primero.dato
-		
+		dato = self.primero.dato		
 		self.primero = self.primero.prox
 		if not self.primero:
-			self.ultimo = None
-		
+			self.ultimo = None		
 		return dato
 
 	def ver_primero(self):
@@ -278,6 +231,7 @@ class Cola():
 			raise ValueError("Cola vacia")
 		return self.primero.dato
 #-----------------------------------------------------------------------------------
+
 
 class MarcaDeTiempo: #doc
 	"""Representa una marca de tiempo que contiene canales en los cuales se habilitan
@@ -300,7 +254,8 @@ class MarcaDeTiempo: #doc
 		self.tracks[track] = False
 #-----------------------------------------------------------------------------------
 
-class Iterador: #doc. 
+
+class IteradorListaEnlazada: #doc. 
 	"""Representa un iterador que va y vuelve."""
 	def __init__(self, lista_enlazada):
 		"""Crea un iterador para una lista enlazada que la puede recorrer 
@@ -310,62 +265,74 @@ class Iterador: #doc.
 		self.actual = lista_enlazada.prim
 		self.pila_anteriores = Pila()
 
-	def proximo(self):
+	def elemento_actual(self):
+		"""Devuelve el elemento actual"""
+		return self.actual.dato
+
+	def avanzar(self):
 		"""Pasa al siguiente elemento de la lista."""
+		if not self.lista.len:
+			raise ValueError("Lista Vacia")
 		if not self.actual.prox:
-			return self.actual#return self.actual??
+			raise StopIteration("Fin de la lista")
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual
 		self.actual = self.actual.prox
-		return self.actual
+		dato = self.actual.dato
+		return dato
 
-	def anterior(self):
+	def retroceder(self):
 		"""Vuelve al elemento anterior de la lista."""
-		if self.pila_anteriores.esta_vacia():
-			return self.actual #return self.actual??
+		if not self.lista.len:
+			raise ValueError("Lista Vacia")
+		if self.anterior is None:
+			raise StopIteration("Principio de la lista")
 		self.actual = self.anterior
+		dato = self.anterior.dato
 		self.anterior = self.pila_anteriores.desapilar()
-		return self.actual
+		return dato
 
 	def insertar(self, dato):
-		"""Inserta un elemento en la pocision actual del iterador."""
-		if self.lista.len == 0 or self.anterior == None:
-			 self.lista._insertar_prim(dato)
-			 self.actual = self.lista.prim
-			 return
+		"""Inserta un elemento en la posicion actual del iterador."""
+		if (self.lista.len == 0) or (self.anterior == None):
+			self.lista._insertar_prim(dato)
+			self.actual = self.lista.prim
+			return
 		nodo = _Nodo(dato)
 		self.anterior.prox = nodo
 		nodo.prox = self.actual
 		self.actual = nodo
-
+		self.lista.len += 1
 #-----------------------------------------------------------------------------------
 
+
 class Cursor: #doc
-	"""Representa un cursor que recorre una lista simplemente enlazada"""
-	def __init__(self, lista):
+	"""Representa un cursor que recorre las marcas de tiempo de una cancion"""
+	def __init__(self, cancion):
 		"""Crea el cursor."""
-		self.lista = lista
-		self.iterador = Iterador(lista)
-		self.actual = lista.prim
-		self.pocision = 0
+		self.iterador = IteradorListaEnlazada(cancion)
+		self.actual = self.iterador.elemento_actual()
+		self.posicion = 0
 		self.reproductor = Reproductor(lista)
 
 	def step(n = 1):
 		"""Avanza n veces por la lista."""
+		n = int(n)
 		for veces in range(n):
-			self.actual = self.iterador.proximo()
-			if self.pocision < self.lista.len:
-				self.pocision += 1
+			self.actual = self.iterador.avanzar()
+			if self.posicion < self.lista.len:
+				self.posicion += 1
 
 	def back(n = 1):
 		"""Retrocede al anterior elemento de la lista."""
+		n = int(n)
 		for veces in range(n):
-			self.actual = self.iterador.anterior()
-			if self.pocision > 0:
-				self.pocision -= 1
+			self.actual = self.iterador.retroceder()
+			if self.posicion > 0:
+				self.posicion -= 1
 
 	def mark_add(self, duracion):
-		"""Agrega una marca de tiempo en la pocision actual del cursor
+		"""Agrega una marca de tiempo en la posicion actual del cursor
 		con la duracion indicada."""
 		canales = self.actual.canales
 		dato = MarcaDeTiempo(duracion, canales)
@@ -373,14 +340,14 @@ class Cursor: #doc
 		self.actual = self.iterador.proximo()
 
 	def mark_add_next(self, duracion):
-		"""Agrega una marca de tiempo en la pocision siguiente del cursor
+		"""Agrega una marca de tiempo en la posicion siguiente del cursor
 		con la duracion indicada."""
 		self.actual = self.iterador.proximo()
 		mark_add(duracion)
 		self.actual = self.iterador.anterior()
 
 	def mark_add_prev(self, duracion):
-		"""Agrega una marca de tiempo en la pocision anterior del cursor
+		"""Agrega una marca de tiempo en la posicion anterior del cursor
 		con la duracion indicada."""
 		self.actual = self.iterador.anterior()
 		mark_add(duracion)
@@ -435,16 +402,13 @@ class Track():
 		creado por la funcion a traves de los parametros.
 		"""
 		frecuencia = int(frecuencia)
-		volumen = float(volumen)
-		
+		volumen = float(volumen)	
 		if not funcion_sonido in FUNCIONES_SONIDO:
 			raise ValueError("Funcion invalida")
-
 		if funcion_sonido == "square":
 			duty_cycle = int(duty_cycle)
 			self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen, duty_cycle)
 			return
-		
 		self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen)
 	
 	def devolver_sonido(self):

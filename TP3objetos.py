@@ -285,7 +285,7 @@ class MarcaDeTiempo: #doc
 	def __init__(self, tiempo, canales):
 		"""Crea una marca de tiempo con el tiempo de duracion y la cantidad 
 		de canales indicado."""
-		self.tiempo = tiempo
+		self.tiempo = float(tiempo)
 		self.tracks = []
 		self.canales = int(canales) 
 		for track in range(1, canales+1):
@@ -298,6 +298,16 @@ class MarcaDeTiempo: #doc
 	def track_off(self, track):
 		"""Desabilita el numero de track de la marca de tiempo."""
 		self.tracks[track] = False
+
+	def tracks_habilitados(self):
+		"""Devuelve los numeros de los tracks habilitados en la marca de tiempo.""" 
+		return [num for num, track in enumerate(lista) if track]
+
+	def dar_tiempo(self):
+		"""Devuelve el tiempo de duracion de la marca de tiempo."""
+		return self.tiempo
+
+
 #-----------------------------------------------------------------------------------
 
 class Iterador: #doc. 
@@ -337,7 +347,6 @@ class Iterador: #doc.
 		self.anterior.prox = nodo
 		nodo.prox = self.actual
 		self.actual = nodo
-
 #-----------------------------------------------------------------------------------
 
 class Cursor: #doc
@@ -389,12 +398,20 @@ class Cursor: #doc
 	def reproducir_actual(self):
 		"""Reproduce la marca de tiempo en el que se encuentra el cursor."""
 		marca_de_tiempo = self.actual
-		self.reproductor.sonar(marca_de_tiempo)
+		habilitados = marca_de_tiempo.tracks_habilitados()
+		tiempo = marca_de_tiempo.dar_tiempo()
+		self.reproductor.sonar(tiempo, habilitados)
 
-	def reproducir_todo(self): #con un iterador "reciclable"
+	def reproducir_todo(self):
 		"""Reproduce toda la cancion representada por la lista."""
-#-----------------------------------------------------------------------------------
+		marca_de_tiempo = self.lista.prim
+		while marca_de_tiempo:
+			habilitados = marca_de_tiempo.tracks_habilitados()
+			tiempo = marca_de_tiempo.dar_tiempo()
+			self.reproductor.sonar(tiempo, habilitados)
+			marca_de_tiempo = marca_de_tiempo.prox
 
+#-----------------------------------------------------------------------------------
 
 class Reproductor: #doc
 	"""Representa un reproductor de sonidos."""
@@ -408,7 +425,7 @@ class Reproductor: #doc
 		Pre: recibe un tiempo en segundos, y la cantidad de canales (ambos enteros).
 		Post: reproduce los tracks en el tiempo dado.
 		"""
-		tiempo = int(tiempo)
+		tiempo = float(tiempo) 
 		canales = int(canales)
 		sp = soundPlayer.SoundPlayer(canales)
 		sp.play_sounds(self.lista_tracks, tiempo)

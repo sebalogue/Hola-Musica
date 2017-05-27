@@ -325,8 +325,19 @@ class IteradorListaEnlazada: #doc.
 		self.actual = lista_enlazada.prim
 		self.pila_anteriores = Pila()
 
+	def esta_vacia(self):
+		"""
+		Devuelve True si la lista esta vacia. 
+		False en caso contrario.
+		"""
+		if not self.actual:
+			return True
+		return False
+
 	def elemento_actual(self):
 		"""Devuelve el elemento actual"""
+		if not self.actual:
+			raise ValueError("Lista Vacia")
 		return self.actual.dato
 
 	def avanzar(self):
@@ -368,20 +379,24 @@ class IteradorListaEnlazada: #doc.
 
 class Cursor: #doc
 	"""Representa un cursor que recorre las marcas de tiempo de una cancion"""
-	def __init__(self, cancion):
+	def __init__(self, cancion reproductor=None):
 		"""Crea el cursor."""
-		self.lista = cancion #Solucionar
+		self.cancion = cancion #ListaEnlazada
 		self.iterador = IteradorListaEnlazada(cancion)
+		self.canales = 0
+		if self.iterador.esta_vacia():
+			self.actual = None
+			return
 		self.actual = self.iterador.elemento_actual()
 		self.posicion = 0
-		self.reproductor = Reproductor(cancion) #Solucionar
+		self.reproductor = reproductor
 
 	def step(n = 1):
 		"""Avanza n veces por la lista."""
 		n = int(n)
 		for veces in range(n):
 			self.actual = self.iterador.avanzar()
-			if self.posicion < self.lista.len:
+			if self.posicion < self.cancion.len:
 				self.posicion += 1
 
 	def back(n = 1):
@@ -397,6 +412,7 @@ class Cursor: #doc
 		Recorre toda la cancion agregando un nuevo track deshabilitado
 		a las marcas de tiempo.
 		"""
+		self.canales += 1
 		while self.actual:
 			self.actual.track_add()
 			self.actual = self.iterador.avanzar()
@@ -406,25 +422,39 @@ class Cursor: #doc
 		Recorre todo la cancion eliminando de las marcas de tiempo, 
 		el track en la posicion indicada.
 		"""
+		self.canales -= 1
 		posicion = int(posicion_de_track)
 		while self.actual:
 			self.actual.track_del(posicion)
 			self.actual = self.iterador.avanzar()
 
+	def track_obtener(self):
+		"""Devuelve una lista de listas, de tiempo y tracks habilitados(lista)
+		de toda la cancion desde la posicion actual."""
+		marca_tiempo = self.actual
+		tiempos_y_tracks = []
+		while marca_tiempo:
+			tiempos_y_tracks.append(marca_tiempo.dar_tiempo_y_habilitados())
+			marca_tiempo = self.iterador.avanzar()
+		return tiempos_y_tracks
+
 	def mark_add(self, duracion):
 		"""Agrega una marca de tiempo en la posicion actual del cursor
 		con la duracion indicada."""
-		canales = self.actual.canales
+		canales = self.canales
 		dato = MarcaDeTiempo(duracion, canales)
 		self.iterador.insertar(dato)
-		self.actual = self.iterador.avanzar()
+		self.actual = dato
 
 	def mark_add_next(self, duracion):
 		"""Agrega una marca de tiempo en la posicion siguiente del cursor
 		con la duracion indicada."""
-		self.actual = self.iterador.avanzar()
-		mark_add(duracion)
-		self.actual = self.iterador.retroceder()
+		try:
+			self.actual = self.iterador.avanzar()	
+			mark_add(duracion)
+			self.actual = self.iterador.retroceder()
+		except StopIteration:
+			mark_add(duracion)
 
 	def mark_add_prev(self, duracion):
 		"""Agrega una marca de tiempo en la posicion anterior del cursor
@@ -454,7 +484,7 @@ class Cursor: #doc
 
 	def reproducir_todo(self):
 		"""Reproduce toda la cancion representada por la lista."""
-		marca_de_tiempo = self.lista.prim
+		marca_de_tiempo = self.cancion.prim
 		cancion = []
 		while marca_de_tiempo:
 			cancion.append(marca_de_tiempo.dar_tiempo_y_habilitados())
@@ -468,7 +498,7 @@ class Cursor: #doc
 		if marca < pos_actual:
 			return
 		a_sonar =[]
-		while pos_actual <= marca and marca_actual:
+		while pos_actual <= marca and marca_actual: #SWAP
 			a_sonar.append(marca_actual.dar_tiempo_y_habilitados())
 			marca_actual = marca_actual.prox
 			i += 1
@@ -481,7 +511,7 @@ class Cursor: #doc
 		tiempo_marca = marca_actual.dar_tiempo()
 		segundos = float(segundos)
 		a_sonar = []
-		while segundos >= tiempo_marca and marca_actual:
+		while segundos >= tiempo_marca and marca_actual: #SWAP
 			a_sonar.append(marca_actual.dar_tiempo_y_habilitados())
 			marca_actual = marca_actual.prox
 			tiempo_marca = marca_actual.dar_tiempo()
@@ -490,31 +520,28 @@ class Cursor: #doc
 #-----------------------------------------------------------------------------------
 
 
-class Reproductor: #doc # NUEVA ACTUALIZACION
+class Reproductor: 
 	"""Representa un reproductor de sonidos."""
-	def __init__(self, cancion=None, canales=None, tracks=None):
-		"""Crea el reproductor de sonidos a partir de una lista de elementos de la 
-		clase Track."""
-		if cancion is None:
-			self.cancion = cancion 
+	def __init__(self):
+		"""Crea el reproductor de canciones, el cual inicia sin ninguna cancion."""
+			self.cancion = ListaEnlazada() 
 			self.canales = 0 
-			self.tracks = [] 
-			return
-		self.cancion = cancion
-		self.canales = canales
-		self.tracks = tracks
+			self.tracks = []
+			self.info = []
+			self.cursor = Cursor(cancion) 
 	
 	def dar_canales(self):
 		"""Devuelve la cantidad de canales"""
 		return self.canales
 
-	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): # NUEVA ACTUALIZACION
+	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): 
 		"""Crea y agrega un nuevo track."""
 		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle=0.5)
 		self.tracks.append(track.dar_sonido())
+		self.info.append([funcion_sonido.upper(), frecuencia, volumen])
 		self.canales += 1
-		cursor = Cursor(cancion)
-		cursor.track_add()
+		cursor_auxiliar = Cursor(cancion)
+		cursor_auxiliar.track_add()
 
 	def track_del(self, posicion):
 		"""
@@ -523,9 +550,10 @@ class Reproductor: #doc # NUEVA ACTUALIZACION
 		"""
 		int(posicion)
 		self.tracks.pop(posicion-1)
+		self.info.pop(posicion-1)
 		self.canales -= 1
-		cursor = Cursor(cancion)
-		cursor.track_del(posicion-1)
+		cursor_auxiliar = Cursor(cancion)
+		cursor_auxiliar.track_del(posicion-1)
 
 	def sonar(self, tiempo, lista_de_tracks):
 		"""
@@ -570,12 +598,77 @@ class Reproductor: #doc # NUEVA ACTUALIZACION
 		Convierte el la cancion (lista enlazada) en un archivo.plp.
 		"""
 		nombre = str(nombre_de_archivo)
-		with open(nombre + ".plp") as _archivo:
-			escritor = csv.writer(_archivo, ",")
-			escritor.writerow(["C", self.canales])
+		cursor_auxiliar = Cursor(self.cancion)
+		tiempos_y_tracks = cursor_auxiliar.track_obtener()
+		tiempo_anterior = None
+		
+		with open(nombre + ".plp", 'w') as _archivo:
+			escritor_A = csv.writer(_archivo, delimiter = ",")
+			
+			escritor_A.writerow(["C", self.canales])
+			
+			for sonido in self.info:
+				escritor_A.writerow(["S", "|".join(sonido)])
+			
+			
+			for tiempo, tracks in tiempos_y_tracks:
+				lista_de_tracks = []
+
+				if tiempo != tiempo_anterior:
+					escritor_A.writerow(["T", tiempo])
+					tiempo_anterior = tiempo
+
+				for canal in range(self.canales):
+					if canal in tracks:
+						lista_de_tracks.append("#")
+						continue
+					lista_de_tracks.append(".")
+
+				escritor_A.writerow(["N","".join(lista_de_tracks)])
+
+	def load(self, cancion):
+		"""
+		Carga una cancion al reproductor.
+		Cancion es un archivo.plp con formato de concion.
+		"""
+		with open(cancion) as _cancion:
+			lector = csv.reader(_cancion, delimiter = ",")
+
+			linea = next(lector, None)
+
+			tiempo_anterior = None
+			while linea:
+				indice = linea[0]
+				datos = linea[1]
+				
+				if indice == "C":
+					self.canales = int(datos)
+					continue
+				
+				if indice == "S":
+					info = datos.split("|")
+					funcion, frecuencia, volumen = info
+					self.track_add(funcion.lower(), int(frecuencia), int(volumen))
+					continue
+				
+				if indice == "T":
+					tiempo = int(datos)
+					if tiempo != tiempo_anterior:
+						tiempo_anterior = tiempo
+					continue
+				
+				if indice == "N":
+					self.cursor.mark_add_next(tiempo_anterior)
+					lista_de_tracks = list(datos)
+					contador = 0
+					for track in lista_de_tracks:
+						if track == "#":
+							self.cursor.activar_track(contador)
+						contador += 1
+					continue
 
 
 
 
-
+			
 

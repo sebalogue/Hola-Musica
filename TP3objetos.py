@@ -1,4 +1,5 @@
 import soundPlayer
+import csv
 #-----------------------------------------------------------------------------------
 
 
@@ -237,11 +238,11 @@ class MarcaDeTiempo: #doc
 	"""Representa una marca de tiempo que contiene canales en los cuales se habilitan
 	o desabilitan los tracks."""
 	def __init__(self, tiempo, canales):
-		"""Crea una marca de tiempo con el tiempo de duracion y la cantidad 
-		de canales indicado."""
+		"""Crea una marca de tiempo con el tiempo de duracion, la cantidad 
+		de canales indicado, y con una lista de tracks habilitados."""
 		self.tiempo = float(tiempo)
-		self.tracks = []
 		self.canales = int(canales) 
+		self.tracks = []
 		for track in range(1, canales+1):
 			self.tracks.append(False)
 
@@ -252,6 +253,22 @@ class MarcaDeTiempo: #doc
 	def track_off(self, track):
 		"""Desabilita el numero de track de la marca de tiempo."""
 		self.tracks[track] = False
+	
+	def track_add(self):
+		"""
+		Agrega un nuevo track deshabiltado al final de la lista.
+		"""
+		self.tracks.append(False)
+		self.canales += 1
+
+	def track_del(self, posicion_de_track):
+		"""
+		Elimina el track en la posicion indicada.
+		Posicion de track deber ser un numero entero, y con un track asociodo.
+		"""
+		posicion = int(posicion_de_track)
+		self.tracks.pop(posicion)
+		self.canales -= 1
 
 	def tracks_habilitados(self):
 		"""Devuelve los numeros de los tracks habilitados en la marca de tiempo.""" 
@@ -262,6 +279,41 @@ class MarcaDeTiempo: #doc
 		return self.tiempo
 
 
+#-----------------------------------------------------------------------------------
+
+
+FUNCIONES_SONIDO = {
+	"noise": soundPlayer.SoundFactory.get_noise_sound ,
+	"silence": soundPlayer.SoundFactory.get_silence_sound ,
+	"sine": soundPlayer.SoundFactory.get_sine_sound ,
+	"square": soundPlayer.SoundFactory.get_square_sound ,
+	"triangular": soundPlayer.SoundFactory.get_triangular_sound ,
+}
+
+class Track():
+	"""Clase que representa un track/pista de sonido"""
+
+	def __init__(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5):
+		"""
+		Pre: recibe una funcion perteneciente al diccionario de funciones 
+		de sonido, una frecuencia (entero), volumen (entero) y un ciclo de 
+		trabajo(entero, parametro opcional).
+		Post: la clase track inicia con atributo que corresponde aun sonido 
+		creado por la funcion a traves de los parametros.
+		"""
+		frecuencia = float(frecuencia)
+		volumen = float(volumen)	
+		if not funcion_sonido in FUNCIONES_SONIDO:
+			raise ValueError("Funcion invalida")
+		if funcion_sonido == "square":
+			duty_cycle = int(duty_cycle)
+			self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen, duty_cycle)
+			return
+		self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen)
+	
+	def dar_sonido(self):
+		"""Devuelve el sonido almacenado en el track"""
+		return self.sonido
 #-----------------------------------------------------------------------------------
 
 
@@ -342,6 +394,26 @@ class Cursor: #doc
 			self.actual = self.iterador.retroceder()
 			if self.posicion > 0:
 				self.posicion -= 1
+	
+	def track_add(self):
+		"""
+		Recorre toda la cancion agregando un nuevo track deshabilitado
+		a las marcas de tiempo.
+		"""
+		while self.actual:
+			self.actual.track_add()
+			self.actual = self.iterador.avanzar()
+
+	def track_del(self, posicion_de_track):
+		"""
+		Recorre todo la cancion eliminando de las marcas de tiempo, 
+		el track en la posicion indicada.
+		"""
+		posicion = int(posicion_de_track)
+		while self.actual:
+			self.actual.track_del(posicion)
+			self.actual = self.iterador.avanzar()
+
 
 	def mark_add(self, duracion):
 		"""Agrega una marca de tiempo en la posicion actual del cursor
@@ -404,81 +476,94 @@ class Cursor: #doc
 			tiempo_marca = marca_actual.dar_tiempo()
 			segundos -= tiempo_marca
 
-	def dar_todos_los_tiempos(self):
-		"""Devuelve una lista de lista de tracks habilitados"""
-		pass
-
 #-----------------------------------------------------------------------------------
 
 class Reproductor: #doc # NUEVA ACTUALIZACION
 	"""Representa un reproductor de sonidos."""
-	def __init__(self, cancion):
+	def __init__(self, cancion=None, canales=None, tracks=None):
 		"""Crea el reproductor de sonidos a partir de una lista de elementos de la 
 		clase Track."""
-		self.cancion = cancion # NUEVA ACTUALIZACION
-		self.canales = 0 # NUEVA ACTUALIZACION
-		self.tracks = {} # NUEVA ACTUALIZACION
-		self.cursor = Cursor(cancion)
+		if cancion is None:
+			self.cancion = cancion 
+			self.canales = 0 
+			self.tracks = [] 
+			return
+		self.cancion = cancion
+		self.canales = canales
+		self.tracks = tracks
 	
 	def dar_canales(self):
 		"""Devuelve la cantidad de canales"""
 		return self.canales
 
-	def crear_track(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): # NUEVA ACTUALIZACION
-		"""Crea un nuevo track"""
+	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): # NUEVA ACTUALIZACION
+		"""Crea y agrega un nuevo track."""
 		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle=0.5)
-		self.tracks[str(self.canales)] = track.dar_sonido()
+		self.tracks.append(track.dar_sonido())
 		self.canales += 1
+		cursor = Cursor(cancion)
+		cursor.track_add()
 
-	def sonar(self, tiempo, tracks_habilitados):
+	def track_del(self, posicion):
+		"""
+		Elimina el track de la posicion indicada.
+		Posicion es un entero.
+		"""
+		int(posicion)
+		self.tracks.pop(posicion-1)
+		self.canales -= 1
+		cursor = Cursor(cancion)
+		cursor.track_del(posicion-1)
+
+	def sonar(self, tiempo, lista_de_tracks):
 		"""
 		Pre: recibe un tiempo en segundos, y la cantidad de canales (ambos enteros).
 		Post: reproduce los tracks en el tiempo dado.
 		"""
 		tiempo = float(tiempo) 
-		lista_de_tracks = []
-		for habilitado in tracks_habilitados: # NUEVA ACTUALIZACION
-			lista_de_tracks.append(self.tracks[str(habilitado)]) # NUEVA ACTUALIZACION
 		canales = self.canales # NUEVA ACTUALIZACION
 		sp = soundPlayer.SoundPlayer(canales)
 		sp.play_sounds(lista_de_tracks, tiempo)
 
-	def reproducir_todo(self,)
-
-
-#-----------------------------------------------------------------------------------
-
-
-FUNCIONES_SONIDO = {
-	"noise": soundPlayer.SoundFactory.get_noise_sound ,
-	"silence": soundPlayer.SoundFactory.get_silence_sound ,
-	"sine": soundPlayer.SoundFactory.get_sine_sound ,
-	"square": soundPlayer.SoundFactory.get_square_sound ,
-	"triangular": soundPlayer.SoundFactory.get_triangular_sound ,
-}
-
-class Track():
-	"""Clase que representa un track/pista de sonido"""
-
-	def __init__(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5):
+	def obtener_sonidos(self, tracks_habilitados):
 		"""
-		Pre: recibe una funcion perteneciente al diccionario de funciones 
-		de sonido, una frecuencia (entero), volumen (entero) y un ciclo de 
-		trabajo(entero, parametro opcional).
-		Post: la clase track inicia con atributo que corresponde aun sonido 
-		creado por la funcion a traves de los parametros.
+		Pre: Recibe una lista de indices a los tracks habilitados.
+		Post: Devuelve una lista de sonidos habilitados.
 		"""
-		frecuencia = int(frecuencia)
-		volumen = float(volumen)	
-		if not funcion_sonido in FUNCIONES_SONIDO:
-			raise ValueError("Funcion invalida")
-		if funcion_sonido == "square":
-			duty_cycle = int(duty_cycle)
-			self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen, duty_cycle)
-			return
-		self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen)
-	
-	def dar_sonido(self):
-		"""Devuelve el sonido almacenado en el track"""
-		return self.sonido
-#-----------------------------------------------------------------------------------
+		lista_de_sonidos = []
+		for indice in  tracks_habilitados:
+			lista_de_sonidos.append(self.tracks[indice])
+		return lista_de_sonidos
+
+	def reproducir(self, tiempos_y_habilitados):
+		"""
+		Pre: recibe un lista de tuplas, donde cada una tiene un tiempo (numero), 
+		y una lista de tracks habilitados.
+		Post: reproduce la cantidad recibida de marcas de tiempo (tuplas).   
+		"""
+		tiempos_y_sonidos = [] 
+		
+		for tiempo_y_habilitado in tiempos_y_habilitados:
+			tiempo_A = tiempo_y_habilitado[0]
+			sonidos_A = self.obtener_sonidos(tiempo_y_habilitado[1])
+			tiempos_y_sonidos.append((tiempo_A, sonidos_A))
+		
+		for tiempo_y_sonido in tiempos_y_sonidos:
+			tiempo_B = tiempo_y_sonido[0]
+			sonidos_B = tiempo_y_sonido[1] 
+			self.sonar(tiempo_B, sonidos_B)
+
+	def store(self, nombre_de_archivo):
+		"""
+		Convierte el la cancion (lista enlazada) en un archivo.plp.
+		"""
+		nombre = str(nombre_de_archivo)
+		with open(nombre + ".plp") as _archivo:
+			escritor = csv.writer(_archivo, ",")
+			escritor.writerow(["C", self.canales])
+			
+
+
+
+
+

@@ -532,6 +532,14 @@ class Reproductor:
 		"""Devuelve la cantidad de canales"""
 		return self.canales
 
+	def dar_cursor(self):
+		"""Devuelve el cursor ya referenciado a la cancion cargada"""
+		return self.cursor
+
+	def dar_cancion(self):
+		"""Devuevlve la cancion cargada"""
+		return self.cancion
+
 	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): 
 		"""Crea y agrega un nuevo track."""
 		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle=0.5)

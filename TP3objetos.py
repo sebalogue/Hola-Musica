@@ -279,7 +279,6 @@ class MarcaDeTiempo: #doc
 
 #-----------------------------------------------------------------------------------
 
-
 FUNCIONES_SONIDO = {
 	"noise": soundPlayer.SoundFactory.get_noise_sound ,
 	"silence": soundPlayer.SoundFactory.get_silence_sound ,
@@ -492,13 +491,12 @@ class Cursor: #doc
 		self.reproductor.reproducir(cancion)
 
 	def reproducir_hasta(self, marca):
-		"""Reproduce desde la marca de tiempo actual hasta la marca dada por parametro."""
+		"""Reproduce la cantidad de marcas dadas por parametro
+		desde la marca de tiempo actual."""
 		marca_actual = self.actual
-		pos_actual = self.pocision
-		if marca < pos_actual:
-			return
+		i = 0
 		a_sonar =[]
-		while pos_actual <= marca and marca_actual: #SWAP
+		while i <= marca and marca_actual: #Invertir orden de validacion.
 			a_sonar.append(marca_actual.dar_tiempo_y_habilitados())
 			marca_actual = marca_actual.prox
 			i += 1

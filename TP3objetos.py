@@ -370,9 +370,9 @@ class Cursor: #doc
 		marca_de_tiempo = marca
 		if marca is None:
 			marca_de_tiempo = self.actual
-		habilitados = marca_de_tiempo.tracks_habilitados() #solucionar 
-		tiempo = marca_de_tiempo.dar_tiempo()			   #Los tracks hablitados no le dan al reproductor los sonidos 
-		self.reproductor.sonar(tiempo, habilitados)		   #sacar de la clase principal(a crear)
+		habilitados = marca_de_tiempo.tracks_habilitados() 
+		tiempo = marca_de_tiempo.dar_tiempo()			   
+		self.reproductor.sonar(tiempo, habilitados)		   
 
 	def reproducir_todo(self):
 		"""Reproduce toda la cancion representada por la lista."""
@@ -388,7 +388,7 @@ class Cursor: #doc
 		if marca < pos_actual:
 			return
 		i = 0
-		while i =< marca and marca_actual:
+		while i <= marca and marca_actual:
 			reproducir_marca(marca_actual)
 			marca_actual = marca_actual.prox
 			i += 1
@@ -404,26 +404,48 @@ class Cursor: #doc
 			tiempo_marca = marca_actual.dar_tiempo()
 			segundos -= tiempo_marca
 
-
+	def dar_todos_los_tiempos(self):
+		"""Devuelve una lista de lista de tracks habilitados"""
+		pass
 
 #-----------------------------------------------------------------------------------
 
-class Reproductor: #doc
+class Reproductor: #doc # NUEVA ACTUALIZACION
 	"""Representa un reproductor de sonidos."""
-	def __init__(self, lista_de_tracks):
+	def __init__(self, cancion):
 		"""Crea el reproductor de sonidos a partir de una lista de elementos de la 
 		clase Track."""
-		self.lista_tracks = lista_de_tracks
+		self.cancion = cancion # NUEVA ACTUALIZACION
+		self.canales = 0 # NUEVA ACTUALIZACION
+		self.tracks = {} # NUEVA ACTUALIZACION
+		self.cursor = Cursor(cancion)
+	
+	def dar_canales(self):
+		"""Devuelve la cantidad de canales"""
+		return self.canales
 
-	def sonar(self, tiempo, canales):
+	def crear_track(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): # NUEVA ACTUALIZACION
+		"""Crea un nuevo track"""
+		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle=0.5)
+		self.tracks[str(self.canales)] = track.dar_sonido()
+		self.canales += 1
+
+	def sonar(self, tiempo, tracks_habilitados):
 		"""
 		Pre: recibe un tiempo en segundos, y la cantidad de canales (ambos enteros).
 		Post: reproduce los tracks en el tiempo dado.
 		"""
 		tiempo = float(tiempo) 
-		canales = int(canales)
+		lista_de_tracks = []
+		for habilitado in tracks_habilitados: # NUEVA ACTUALIZACION
+			lista_de_tracks.append(self.tracks[str(habilitado)]) # NUEVA ACTUALIZACION
+		canales = self.canales # NUEVA ACTUALIZACION
 		sp = soundPlayer.SoundPlayer(canales)
-		sp.play_sounds(self.lista_tracks, tiempo)
+		sp.play_sounds(lista_de_tracks, tiempo)
+
+	def reproducir_todo(self,)
+
+
 #-----------------------------------------------------------------------------------
 
 
@@ -456,7 +478,7 @@ class Track():
 			return
 		self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen)
 	
-	def devolver_sonido(self):
+	def dar_sonido(self):
 		"""Devuelve el sonido almacenado en el track"""
 		return self.sonido
 #-----------------------------------------------------------------------------------

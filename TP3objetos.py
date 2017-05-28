@@ -238,7 +238,7 @@ class MarcaDeTiempo: #doc
 		self.tiempo = float(tiempo)
 		self.canales = int(canales) 
 		self.tracks = []
-		for track in range(1, canales+1):
+		for track in range(canales):
 			self.tracks.append(False)
 
 	def track_on(self, track):
@@ -276,6 +276,7 @@ class MarcaDeTiempo: #doc
 	def dar_tiempo_y_habilitados(self):
 		"""Devuelve una tupla con el tiempo y los tracks habilitados de la marca de tiempo."""
 		tiempo_y_habilitados = (self.dar_tiempo(), self.tracks_habilitados())
+		return tiempo_y_habilitados
 
 #-----------------------------------------------------------------------------------
 
@@ -398,18 +399,18 @@ class Cursor: #doc
 		self.cancion = self.reproductor.dar_cancion()
 		self.iterador = IteradorListaEnlazada(self.cancion)
 		self.canales = 0
+		self.posicion = 0
 		if self.iterador.esta_vacia():
 			self.actual = None
 			return
 		self.actual = self.iterador.elemento_actual()
-		self.posicion = 0
 
 	def step(self, n = 1):
 		"""Avanza n veces por la lista."""
 		n = int(n)
 		if not len(self.cancion):
 			raise ValueError("Cancion vacia.")
-		if posicion == (len(self.cancion) - 1):
+		if self.posicion == (len(self.cancion) - 1):
 			raise StopIteration("Fin de la cancion.")
 		for veces in range(n):
 			self.actual = self.iterador.avanzar()
@@ -421,7 +422,7 @@ class Cursor: #doc
 		n = int(n)
 		if not len(self.cancion):
 			raise ValueError("Cancion vacia.")
-		if posicion == 0:
+		if self.posicion == 0:
 			raise StopIteration("Principio de la cancion.")
 		for veces in range(n):
 			self.actual = self.iterador.retroceder()
@@ -470,7 +471,7 @@ class Cursor: #doc
 	def mark_add_next(self, duracion):
 		"""Agrega una marca de tiempo en la posicion siguiente del cursor
 		con la duracion indicada."""
-		if posicion == (len(self.cancion) - 1):
+		if  not self.actual or self.posicion == (len(self.cancion) - 1):
 			dato = MarcaDeTiempo(duracion, self.canales)
 			self.iterador._insertar_ultimo(dato)
 			return
@@ -481,7 +482,7 @@ class Cursor: #doc
 	def mark_add_prev(self, duracion):
 		"""Agrega una marca de tiempo en la posicion anterior del cursor
 		con la duracion indicada."""
-		if posicion == 0:
+		if self.posicion == 0:
 			mark_add(duracion)
 			self.avanzar()
 			return
@@ -492,14 +493,14 @@ class Cursor: #doc
 	def activar_track(self, numero_track):
 		"""Activa el numero de track de la marca 
 		de tiempo en la cual esta el cursor."""
-		if not numero_track.isdigit():
+		if type(numero_track) != int:
 			raise ValueError ("Debe ingresar un numero de track.")
 		self.actual.track_on(int(numero_track))
 
 	def desactivar_track(self, numero_track):
 		"""Desactiva el numero de track de la marca 
 		de tiempo en la cual esta el cursor."""
-		if not numero_track.isdigit():
+		if type(numero_track) != int:
 			raise ValueError ("Debe ingresar un numero de track.")
 		self.actual.track_off(int(numero_track))
 
@@ -513,7 +514,7 @@ class Cursor: #doc
 		marca_de_tiempo = self.cancion.prim
 		cancion = []
 		while marca_de_tiempo:
-			cancion.append(marca_de_tiempo.dar_tiempo_y_habilitados())
+			cancion.append(marca_de_tiempo.dato.dar_tiempo_y_habilitados())
 			marca_de_tiempo = marca_de_tiempo.prox
 		self.reproductor.reproducir(cancion)
 
@@ -523,7 +524,7 @@ class Cursor: #doc
 		marca_actual = self.actual
 		i = 0
 		a_sonar =[]
-		while i <= marca and marca_actual: #Invertir orden de validacion.
+		while marca_actual and (i <= marca): 
 			a_sonar.append(marca_actual.dar_tiempo_y_habilitados())
 			marca_actual = marca_actual.prox
 			i += 1
@@ -677,32 +678,40 @@ class Reproductor:
 				
 				if indice == "C":
 					self.canales = int(datos)
+					self.cursor.canales = int(datos) #No dejar asi, buscar alternativa mas correcta 
+					linea = next(lector, None)
 					continue
 				
 				if indice == "S":
 					info = datos.split("|")
 					funcion, frecuencia, volumen = info
-					self.track_add(funcion.lower(), int(frecuencia), int(volumen))
+					self.track_add(funcion.lower(), int(frecuencia), float(volumen))
+					linea = next(lector, None)
 					continue
 				
 				if indice == "T":
-					tiempo = int(datos)
+					tiempo = float(datos)
 					if tiempo != tiempo_anterior:
 						tiempo_anterior = tiempo
+					linea = next(lector, None)
 					continue
 				
 				if indice == "N":
-					self.cursor.mark_add_next(tiempo_anterior)
-					self.cursor.avanzar()
-					steps += 1
+					try:
+						self.cursor.mark_add_next(tiempo_anterior)
+						self.cursor.step()
+						steps += 1
+					except ValueError:
+						self.cursor.mark_add(tiempo_anterior)
 					lista_de_tracks = list(datos)
 					contador = 0
 					for track in lista_de_tracks:
 						if track == "#":
 							self.cursor.activar_track(contador)
 						contador += 1
+					linea = next(lector, None)
 					continue
-		self.cursor.retroceder(steps)
+		self.cursor.back(steps)
 
 
 

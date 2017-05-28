@@ -61,7 +61,8 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 
 	def do_TRACKDEL(self, numero_track):
 		"""Elimina un track por numero."""
-		REPRODUCTOR.track_del(numero_track)
+		numero = numero_track - 1
+		REPRODUCTOR.track_del(numero)
 
 	def do_MARKADD(self, duracion):
 		"""Agrega una marca de tiempo de la duracion establecida."""

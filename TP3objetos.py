@@ -373,34 +373,56 @@ class IteradorListaEnlazada: #doc.
 		nodo.prox = self.actual
 		self.actual = nodo
 		self.lista.len += 1
+	
+	def _insertar_ultimo(self, dato):
+		"""
+		Pre: Debe encontrarse el la ultima posicion de la lista enlazada.
+		Post: Inserta un elemento al final de las lista (despues del ultimo elemento).
+		"""
+		if not self.actual:
+			raise ValueError("Lista Vacia")
+		if self.actual.prox:
+			raise IndexError("Aun hay elementos adelante")
+		nodo = _Nodo(dato)
+		self.actual.prox = nodo
+		self.lista.len += 1
+
 #-----------------------------------------------------------------------------------
 
 
 class Cursor: #doc
 	"""Representa un cursor que recorre las marcas de tiempo de una cancion"""
-	def __init__(self, cancion reproductor=None):
+	def __init__(self, reproductor):
 		"""Crea el cursor."""
-		self.cancion = cancion #ListaEnlazada
-		self.iterador = IteradorListaEnlazada(cancion)
+		self.reproductor = reproductor
+		self.cancion = self.reproductor.dar_cancion()
+		self.iterador = IteradorListaEnlazada(self.cancion)
 		self.canales = 0
 		if self.iterador.esta_vacia():
 			self.actual = None
 			return
 		self.actual = self.iterador.elemento_actual()
 		self.posicion = 0
-		self.reproductor = reproductor
 
-	def step(n = 1):
+	def step(self, n = 1):
 		"""Avanza n veces por la lista."""
 		n = int(n)
+		if not len(self.cancion):
+			raise ValueError("Cancion vacia.")
+		if posicion == (len(self.cancion) - 1):
+			raise StopIteration("Fin de la cancion.")
 		for veces in range(n):
 			self.actual = self.iterador.avanzar()
 			if self.posicion < self.cancion.len:
 				self.posicion += 1
 
-	def back(n = 1):
+	def back(self, n = 1):
 		"""Retrocede al anterior elemento de la lista."""
 		n = int(n)
+		if not len(self.cancion):
+			raise ValueError("Cancion vacia.")
+		if posicion == 0:
+			raise StopIteration("Principio de la cancion.")
 		for veces in range(n):
 			self.actual = self.iterador.retroceder()
 			if self.posicion > 0:
@@ -448,16 +470,21 @@ class Cursor: #doc
 	def mark_add_next(self, duracion):
 		"""Agrega una marca de tiempo en la posicion siguiente del cursor
 		con la duracion indicada."""
-		try:
-			self.actual = self.iterador.avanzar()	
-			mark_add(duracion)
-			self.actual = self.iterador.retroceder()
-		except StopIteration:
-			mark_add(duracion)
+		if posicion == (len(self.cancion) - 1):
+			dato = MarcaDeTiempo(duracion, self.canales)
+			self.iterador._insertar_ultimo(dato)
+			return
+		self.actual = self.iterador.avanzar()	
+		mark_add(duracion)
+		self.actual = self.iterador.retroceder()
 
 	def mark_add_prev(self, duracion):
 		"""Agrega una marca de tiempo en la posicion anterior del cursor
 		con la duracion indicada."""
+		if posicion == 0:
+			mark_add(duracion)
+			self.avanzar()
+			return
 		self.actual = self.iterador.retroceder()
 		mark_add(duracion)
 		self.actual = self.iterador.avanzar()
@@ -522,11 +549,11 @@ class Reproductor:
 	"""Representa un reproductor de sonidos."""
 	def __init__(self):
 		"""Crea el reproductor de canciones, el cual inicia sin ninguna cancion."""
-			self.cancion = ListaEnlazada() 
-			self.canales = 0 
-			self.tracks = []
-			self.info = []
-			self.cursor = Cursor(cancion) 
+		self.cancion = ListaEnlazada() 
+		self.canales = 0 
+		self.tracks = []
+		self.info = []
+		self.cursor = Cursor(self) 
 	
 	def dar_canales(self):
 		"""Devuelve la cantidad de canales"""
@@ -546,7 +573,7 @@ class Reproductor:
 		self.tracks.append(track.dar_sonido())
 		self.info.append([funcion_sonido.upper(), frecuencia, volumen])
 		self.canales += 1
-		cursor_auxiliar = Cursor(cancion)
+		cursor_auxiliar = Cursor(self)
 		cursor_auxiliar.track_add()
 
 	def track_del(self, posicion):
@@ -637,6 +664,7 @@ class Reproductor:
 		Carga una cancion al reproductor.
 		Cancion es un archivo.plp con formato de concion.
 		"""
+		steps = 0
 		with open(cancion) as _cancion:
 			lector = csv.reader(_cancion, delimiter = ",")
 
@@ -665,6 +693,8 @@ class Reproductor:
 				
 				if indice == "N":
 					self.cursor.mark_add_next(tiempo_anterior)
+					self.cursor.avanzar()
+					steps += 1
 					lista_de_tracks = list(datos)
 					contador = 0
 					for track in lista_de_tracks:
@@ -672,7 +702,7 @@ class Reproductor:
 							self.cursor.activar_track(contador)
 						contador += 1
 					continue
-
+		self.cursor.retroceder(steps)
 
 
 

@@ -15,7 +15,10 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 	def do_LOAD(self, parametro): 
 		"""Carga la cancion desde el archivo. 
 		Reemplaza la cancion en edicion actual si es que la hay."""
-		REPRODUCTOR.load(parametro)
+		try:
+			REPRODUCTOR.load(parametro)
+		except IOError:
+			print("Comando Invalido")
 
 	def do_STORE (self, parametro):
 		"""Guarda la cancion."""
@@ -34,14 +37,14 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 		if not parametro.isdigit():
 			print("Comando invalido")
 			return
-		CURSOR.step(int(parametro))
+		REPRODUCTOR.step(int(parametro))
 		
 	def do_BACKM(self, parametro):
 		"""Retrocede N marcas de tiempo hacia atras."""
 		if parametro.isdigit():
 			print("Comando Invalido")
 			return
-		CURSOR.back(int(parametro))
+		REPRODUCTOR.back(int(parametro))
 
 	def do_TRACKADD(self, parametro):
 		"""Agrega un track con el sonido indicado."""
@@ -58,33 +61,33 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 	def do_MARKADD(self, parametro):
 		"""Agrega una marca de tiempo de la duracion establecida."""
 		if parametro: #validar float
-			CURSOR.mark_add(float(parametro))
+			pass
 
 	def do_MARKADDNEXT(self, parametro):
 		"""Agrega una marca de tiempo de la duracion establecida
 		luego de la marca en la cual esta
 		actualmente el cursor"""
 		if parametro:#float
-			CURSOR.mark_add_next(float(parametro))
+			pass
 
 	def do_MARKADDPREV(self, parametro):
 		"""Agrega una marca de tiempo de la duracion establecida
 		antes de la marca en la cual esta
 		actualmente el cursor"""
 		if parametro:#float
-			CURSOR.mark_add_prev(float(parametro))
+			pass
 
 	def do_TRACKON(self, parametro):
 		"""Habilita al track durante la marca de tiempo
 		en la cual esta parada el cursor."""
 		if parametro.isdigit():
-			CURSOR.activar_track(int(parametro))
+			pass
 
 	def do_TRACKOFF(self, parametro):
 		"""Desabilita al track durante la marca de tiempo
 		 en la cual esta parada el cursor."""
 		if parametro.isdigit():
-			CURSOR.desactivar_track(int(parametro))
+			pass
 
 	def do_PLAY(self, parametro):
 		"""Reproduce la marca en la que se encuentra el cursor actualmente."""
@@ -107,7 +110,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 		if not parametro.isdigit():
 			print("Comando invalido")
 			return
-		CURSOR.reproducir_segundos(float(parametro))
+		REPRODUCTOR.reproducir_segundos(float(parametro))
 
 Shell().cmdloop()
 

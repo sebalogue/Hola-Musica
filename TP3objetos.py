@@ -392,17 +392,6 @@ class Cursor:
 			self.actual.track_del(posicion)
 			self.actual = self.iterador.avanzar()
 
-	def track_obtener(self):
-		"""Devuelve una lista de listas, de tiempo y tracks habilitados(lista)
-		de toda la cancion desde la posicion actual."""
-		if self.cancion.esta_vacia():
-			raise ValueError("Cancion vacia.")
-		marca_tiempo = self.actual
-		tiempos_y_tracks = []
-		while marca_tiempo:
-			tiempos_y_tracks.append(marca_tiempo.dar_tiempo_y_habilitados())
-			marca_tiempo = self.iterador.avanzar()
-		return tiempos_y_tracks
 
 	def mark_add(self, duracion, canales):
 		"""
@@ -457,20 +446,25 @@ class Cursor:
 		self.actual.track_off(int(numero_track))
 
 	def obtener_marca(self):
-		"""Devuelve una lista de listas tiempo y track habilitado en el que se encuentra el cursor."""
+		"""
+		Devuelve una lista de listas tiempo y track habilitado 
+		en el que se encuentra el cursor.
+		"""
 		if not self.actual:
 			raise ValueError("Cancion vacia.")
 		return [self.actual.dar_tiempo_y_habilitados()]			   			   
-
-	def reproducir_todo(self):
+	
+	def obtener_cancion_completa(self):
 		"""Reproduce toda la cancion representada por la lista."""
-		iterador_auxiliar
-		marca_actual =  self.cancion.prim
-		cancion = []
-		while marca_de_tiempo:
-			cancion.append(marca_de_tiempo.dato.dar_tiempo_y_habilitados())
-			marca_de_tiempo = marca_de_tiempo.prox
-		self.reproductor.reproducir(cancion)
+		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
+		marca_actual =  iterador_auxiliar.elemento_actual()
+		if not marca_actual:
+			raise ValueError("Cancion vacia.")
+		tiempos_y_tracks = []
+		while marca_actual:
+			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
+			marca_actual = iterador_auxiliar.avanzar()
+		return tiempos_y_tracks
 
 	def obtener_proximas_x_marcas(self, marca):
 		"""

@@ -66,12 +66,12 @@ class ListaEnlazada():
 		"""Inserta un elemento en la posicion indicada"""	
 		if posicion < 0 or posicion > self.len:
 			raise IndexError("Indice fuera de rango")
-		if posicion == 0 or self.len == 0:
+		if posicion == 0:
 			self._insertar_prim(dato)
 			return
 		actual = self.prim
 		i = 0
-		while actual and (i < (posicion - 1)):
+		while actual and (i < posicion):
 			actual = actual.prox
 			i += 1
 		nodo = _Nodo(dato)
@@ -101,13 +101,14 @@ class ListaEnlazada():
 		if (posicion == 0) or (self.len == 0):
 			dato = self._borrar_prim()
 			return dato
-		actual = self.prim
+		anterior = self.prim
+		actual = self.prim.prox
 		i = 0
-		while actual and (i < posicion - 1):
+		while actual.prox and (i < posicion):
+			anterior = actual
 			actual = actual.prox 
 			i += 1
-		dato = actual.prox.dato
-		actual.prox = actual.prox.prox
+		anterior.prox = actual.prox
 		self.len -= 1
 		return dato
 
@@ -177,14 +178,14 @@ class Pila():
 
 	def ver_tope(self):
 		"""
-		Imprime un representacion del ultimo iterm ingresado.
+		Devuelve el ultimo item ingresado.
 		"""	
 		if self.esta_vacia():
 			raise ValueError("Pila vacia")
-		
-		return self.items[-1]
+		tope = self.desapilar()
+		self.apilar(tope)	
+		return tope
 #-----------------------------------------------------------------------------------
-
 
 class MarcaDeTiempo: #doc
 	"""Representa una marca de tiempo que contiene canales en los cuales se habilitan
@@ -272,10 +273,10 @@ class Track():
 #-----------------------------------------------------------------------------------
 
 class IteradorListaEnlazada: #doc. 
-	"""Representa un iterador que va y vuelve."""
+	"""Representa un iterador que puede recorrer una lista enlazada
+	tanto avanzando como retrocediendo."""
 	def __init__(self, lista_enlazada):
-		"""Crea un iterador para una lista enlazada que la puede recorrer 
-		para atras y para adelante.""" 
+		"""Crea un iterador para una lista enlazada.""" 
 		self.lista = lista_enlazada
 		self.anterior = None
 		self.actual = lista_enlazada.prim
@@ -286,18 +287,18 @@ class IteradorListaEnlazada: #doc.
 		Devuelve True si la lista esta vacia. 
 		False en caso contrario.
 		"""
-		return self.lista.len == 0
+		return len(self.lista) == 0
 
 	def elemento_actual(self):
 		"""Devuelve el elemento actual"""
-		if not self.actual:
-			return
+		if self.esta_vacia():
+			raise ValueError("No hay elementos en la lista.")
 		return self.actual.dato
 
 	def avanzar(self):
 		"""Pasa al siguiente elemento de la lista."""
 		if self.esta_vacia() or not self.actual.prox:
-			return
+			raise ValueError("No hay mas elementos en la lista.")
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual
 		self.actual = self.actual.prox
@@ -305,19 +306,19 @@ class IteradorListaEnlazada: #doc.
 
 	def retroceder(self):
 		"""Vuelve al elemento anterior de la lista."""
-		if self.esta_vacia() or self.pila_anteriores.esta_vacia(): #raise o return solo?
-			return
+		if self.pila_anteriores.esta_vacia(): 
+			raise ValueError("No hay mas elementos en la lista.")
 		self.actual = self.anterior
 		self.anterior = self.pila_anteriores.desapilar()
 		return self.actual.dato
 
 	def insertar(self, dato):
 		"""Inserta un elemento en la posicion actual del iterador."""
-		if self.lista.len <= 1:
+		if len(self.lista) <= 1:
 			self.lista._insertar_prim(dato)
 			self.actual = self.lista.prim
 			self.lista.len += 1
-			return
+			return self.actual.dato
 		nodo = _Nodo(dato)
 		self.anterior.prox = nodo
 		nodo.prox = self.actual
@@ -339,7 +340,6 @@ class IteradorListaEnlazada: #doc.
 
 #-----------------------------------------------------------------------------------
 
-
 class Cursor:
 	"""Representa un cursor que recorre las marcas de tiempo de una cancion"""
 	def __init__(self, reproductor):
@@ -348,27 +348,24 @@ class Cursor:
 		self.cancion = self.reproductor.dar_cancion()
 		self.iterador = IteradorListaEnlazada(self.cancion)
 		self.posicion = 0
-		if self.iterador.esta_vacia():
-			self.actual = None
-			return
 		self.actual = self.iterador.elemento_actual()
 
 	def step(self, n = 1):
 		"""Avanza n veces por la lista."""
 		n = int(n)
-		if not len(self.cancion):
+		if self.cancion.esta_vacia():
 			raise ValueError("Cancion vacia.")
 		if self.posicion == (len(self.cancion) - 1):
 			raise StopIteration("Fin de la cancion.")
 		for veces in range(n):
 			self.actual = self.iterador.avanzar()
-			if self.posicion < self.cancion.len:
+			if self.posicion < len(self.cancion):
 				self.posicion += 1
 
 	def back(self, n = 1):
 		"""Retrocede al anterior elemento de la lista."""
 		n = int(n)
-		if not len(self.cancion):
+		if self.cancion.esta_vacia():
 			raise ValueError("Cancion vacia.")
 		if self.posicion == 0:
 			raise StopIteration("Principio de la cancion.")
@@ -399,6 +396,8 @@ class Cursor:
 	def track_obtener(self):
 		"""Devuelve una lista de listas, de tiempo y tracks habilitados(lista)
 		de toda la cancion desde la posicion actual."""
+		if self.cancion.esta_vacia():
+			raise ValueError("Cancion vacia.")
 		marca_tiempo = self.actual
 		tiempos_y_tracks = []
 		while marca_tiempo:
@@ -435,27 +434,25 @@ class Cursor:
 		con la duracion indicada.
 		"""
 		if self.posicion == 0:
-			mark_add(float(duracion))
+			self.mark_add(float(duracion))
 			self.avanzar()
 			return
 		self.actual = self.iterador.retroceder()
-		mark_add(float(duracion))
+		self.mark_add(float(duracion))
 		self.actual = self.iterador.avanzar()
 
 	def activar_track(self, numero_track):
 		"""Activa el numero de track de la marca 
 		de tiempo en la cual esta el cursor."""
 		if not numero_track.isdigit():
-			print ("Debe ingresar un numero de track.")
-			return
+			raise ValueError("Debe ingresar un numero de track.")
 		self.actual.track_on(int(numero_track))
 
 	def desactivar_track(self, numero_track):
 		"""Desactiva el numero de track de la marca 
 		de tiempo en la cual esta el cursor."""
 		if not numero_track.isdigit():
-			print ("Debe ingresar un numero de track.")
-			return
+			raise ValueError("Debe ingresar un numero de track.")
 		self.actual.track_off(int(numero_track))
 
 	def reproducir_marca(self):
@@ -519,9 +516,9 @@ class Reproductor:
 		de la cancion. Pasos es una entero mayor a cero. (por defecto es 1).
 		Post: avanza tantos pasos en la cancion.
 		"""
+		if not pasos.isdigit():
+			raise ValueError("Debe ser un numero entero mayor a cero")
 		pasos = int(pasos)
-		if pasos < 1:
-			raise ValueError("No puede avanzar menos de un paso.")
 		self.cursor.step(pasos)
 	
 	def back(self, pasos = 1):
@@ -531,9 +528,9 @@ class Reproductor:
 		es 1).
 		Post retrocede tantos pasos en la cancion.
 		"""
+		if not pasos.isdigit():
+			raise ValueError("Debe ser un numero entero mayor a cero")
 		pasos = int(pasos)
-		if pasos < 1:
-			raise ValueError("No puede retroceder menos de un paso")
 		self.cursor.back(pasos)
 
 	def mark_add(self, tiempo):
@@ -543,7 +540,7 @@ class Reproductor:
 		cursor.
 		"""
 		tiempo = float(tiempo)
-		if tiempo <= 0:
+		if tiempo <= 0.0:
 			raise ValueError("Tiempo debe ser un numero mayor a cero.")
 		self.cursor.mark_add(tiempo, self.canales)
 
@@ -554,7 +551,7 @@ class Reproductor:
 		posicion actual del cursor.
 		"""
 		tiempo = float(tiempo)
-		if tiempo <= 0:
+		if tiempo <= 0.0:
 			raise ValueError("Tiempo debe ser un numero mayor a cero.")
 		self.cursor.mark_add_next(tiempo, self.canales)
 
@@ -564,18 +561,12 @@ class Reproductor:
 		Post Agrega una nueva marca de tiempo un paso atras de la posicion 
 		actual del cursor 
 		"""
-		tiempo = int(tiempo)
+		tiempo = float(tiempo)
 		if tiempo <= 0:
 			raise ValueError("Tiempo deber ser un numero mayor a cero.")
 		self.cursor.mark_add_prev(tiempo, self.canales)
 
 	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): 
-		"""
-		Crea y agrega un nuevo track.
-		"""
-
-	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): #porque cursor_auxiliar? no lo tendria que agregar al self.cursor?
-		"""Crea y agrega un nuevo track."""
 		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle=0.5)
 		self.tracks.append(track.dar_sonido())
 		self.info.append([funcion_sonido.upper(), frecuencia, volumen])
@@ -583,17 +574,19 @@ class Reproductor:
 		cursor_auxiliar = Cursor(self)
 		cursor_auxiliar.track_add()
 
-	def track_del(self, posicion): #aca tambien por que otro cursor? 
+	def track_del(self, posicion):
 		"""
 		Elimina el track de la posicion indicada.
 		Posicion es un entero.
 		"""
+		if not posicion.isdigit():
+			raise ValueError("Posicion no valida.")
 		int(posicion)
-		self.tracks.pop(posicion-1)
-		self.info.pop(posicion-1)
+		self.tracks.pop(posicion)
+		self.info.pop(posicion)
 		self.canales -= 1
 		cursor_auxiliar = Cursor(cancion)
-		cursor_auxiliar.track_del(posicion-1)
+		cursor_auxiliar.track_del(posicion)
 
 	def sonar(self, tiempo, lista_de_tracks):
 		"""

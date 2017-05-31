@@ -185,49 +185,6 @@ class Pila():
 		return self.items[-1]
 #-----------------------------------------------------------------------------------
 
-class Cola():
-	"""Clase que representa una cola representa una cola."""
-	def __init__(self):
-		"""Crea  una cola vacia"""
-		self.primero = None
-		self.ultimo = None
-
-	def esta_vacia(self):
-		"""
-		Devuelve True si la cola esta vacia, 
-		False en caso contrario.
-		"""
-		return (self.primero is None)
-
-	def encolar(self, dato):
-		"""Encola el dato recicido."""
-		nodo = _Nodo(dato)
-		if self.ultimo:
-			self.ultimo.prox = nodo
-			self.ultimo = nodo
-			return
-		self.primero = nodo
-		self.ultimo = nodo
-
-	def desencolar(self):
-		"""
-		Desencola el primer elemento de 
-		la cola y devuelve su valor.
-		"""		
-		if self.esta_vacia():
-			raise ValueError("Cola vacia")
-		dato = self.primero.dato		
-		self.primero = self.primero.prox
-		if not self.primero:
-			self.ultimo = None		
-		return dato
-
-	def ver_primero(self):
-		"""Devuelve el primer elemento de la cola"""
-		if self.esta_vacia():
-			raise ValueError("Cola vacia")
-		return self.primero.dato
-#-----------------------------------------------------------------------------------
 
 class MarcaDeTiempo: #doc
 	"""Representa una marca de tiempo que contiene canales en los cuales se habilitan
@@ -391,14 +348,13 @@ class IteradorListaEnlazada: #doc.
 #-----------------------------------------------------------------------------------
 
 
-class Cursor: #doc
+class Cursor:
 	"""Representa un cursor que recorre las marcas de tiempo de una cancion"""
 	def __init__(self, reproductor):
 		"""Crea el cursor."""
 		self.reproductor = reproductor
 		self.cancion = self.reproductor.dar_cancion()
 		self.iterador = IteradorListaEnlazada(self.cancion)
-		self.canales = 0
 		self.posicion = 0
 		if self.iterador.esta_vacia():
 			self.actual = None
@@ -434,7 +390,6 @@ class Cursor: #doc
 		Recorre toda la cancion agregando un nuevo track deshabilitado
 		a las marcas de tiempo.
 		"""
-		self.canales += 1
 		while self.actual:
 			self.actual.track_add()
 			self.actual = self.iterador.avanzar()
@@ -444,7 +399,6 @@ class Cursor: #doc
 		Recorre todo la cancion eliminando de las marcas de tiempo, 
 		el track en la posicion indicada.
 		"""
-		self.canales -= 1
 		posicion = int(posicion_de_track)
 		while self.actual:
 			self.actual.track_del(posicion)
@@ -460,28 +414,34 @@ class Cursor: #doc
 			marca_tiempo = self.iterador.avanzar()
 		return tiempos_y_tracks
 
-	def mark_add(self, duracion):
-		"""Agrega una marca de tiempo en la posicion actual del cursor
-		con la duracion indicada."""
-		canales = self.canales
+	def mark_add(self, duracion, canales):
+		"""
+		Agrega una marca de tiempo en la posicion actual del cursor
+		con la duracion indicada.
+		"""
+		canales = int(canales)
 		dato = MarcaDeTiempo(duracion, canales)
 		self.iterador.insertar(dato)
 		self.actual = dato
 
-	def mark_add_next(self, duracion):
-		"""Agrega una marca de tiempo en la posicion siguiente del cursor
-		con la duracion indicada."""
+	def mark_add_next(self, duracion, canales):
+		"""
+		Agrega una marca de tiempo en la posicion siguiente del cursor
+		con la duracion indicada.
+		"""
 		if  not self.actual or self.posicion == (len(self.cancion) - 1):
-			dato = MarcaDeTiempo(duracion, self.canales)
+			dato = MarcaDeTiempo(duracion, canales)
 			self.iterador._insertar_ultimo(dato)
 			return
 		self.actual = self.iterador.avanzar()	
 		mark_add(duracion)
 		self.actual = self.iterador.retroceder()
 
-	def mark_add_prev(self, duracion):
-		"""Agrega una marca de tiempo en la posicion anterior del cursor
-		con la duracion indicada."""
+	def mark_add_prev(self, duracion, canales):
+		"""
+		Agrega una marca de tiempo en la posicion anterior del cursor
+		con la duracion indicada.
+		"""
 		if self.posicion == 0:
 			mark_add(duracion)
 			self.avanzar()
@@ -555,21 +515,71 @@ class Reproductor:
 		self.tracks = []
 		self.info = []
 		self.cursor = Cursor(self) 
-	
-	def dar_canales(self):
-		"""Devuelve la cantidad de canales"""
-		return self.canales
-
-	def dar_cursor(self):
-		"""Devuelve el cursor ya referenciado a la cancion cargada"""
-		return self.cursor
 
 	def dar_cancion(self):
 		"""Devuevlve la cancion cargada"""
 		return self.cancion
 
+	def step(self, pasos = 1):
+		"""
+		Pre: Recibe una cantidad de pasos a avanzar en la linea de tiempo 
+		de la cancion. Pasos es una entero mayor a cero. (por defecto es 1).
+		Post: avanza tantos pasos en la cancion.
+		"""
+		pasos = int(pasos)
+		if pasos < 1:
+			raise ValueError("No puede avanzar menos de un paso.")
+		self.cursor.step(pasos)
+	
+	def back(self, pasos = 1):
+		"""
+		Pre: Recibe una cantidad de pasos a retrroceder en la linea de 
+		tiempo de la cancion. Pasos es un entero mayor a cero (por defecto 
+		es 1).
+		Post retrocede tantos pasos en la cancion.
+		"""
+		pasos = int(pasos)
+		if pasos < 1:
+			raise ValueError("No puede retroceder menos de un paso")
+		self.cursor.back(pasos)
+
+	def mark_add(self, tiempo):
+		"""
+		Pre: recibe un tiempo (numero) mayor a cero.
+		Post: Agrega una nueva marca de tiempo en las posicion actual del 
+		cursor.
+		"""
+		tiempo = float(tiempo)
+		if tiempo <= 0:
+			raise ValueError("Tiempo debe ser un numero mayor a cero.")
+		self.cursor.mark_add(tiempo, self.canales)
+
+	def mark_add_next(self, tiempo):
+		"""
+		Pre: recibe un tiempo (entero o decimal) mayor a cero.
+		Post: Agrega una nueva marca de tiempo un paso adelante de la 
+		posicion actual del cursor.
+		"""
+		tiempo = float(tiempo)
+		if tiempo <= 0:
+			raise ValueError("Tiempo debe ser un numero mayor a cero.")
+		self.cursor.mark_add_next(tiempo, self.canales)
+
+	def mark_add_prev(self, tiempo):
+		"""
+		Pre: recibe un tiempo (entero o decimal) mayor a cero.
+		Post Agrega una nueva marca de tiempo un paso atras de la posicion 
+		actual del cursor 
+		"""
+		tiempo = int(tiempo)
+		if tiempo <= 0:
+			raise ValueError("Tiempo deber ser un numero mayor a cero.")
+		self.cursor.mark_add_prev(tiempo, self.canales)
+
 	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): 
-		"""Crea y agrega un nuevo track."""
+		"""
+		Crea y agrega un nuevo track.
+		"""
 		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle=0.5)
 		self.tracks.append(track.dar_sonido())
 		self.info.append([funcion_sonido.upper(), frecuencia, volumen])

@@ -444,14 +444,16 @@ class Cursor:
 	def activar_track(self, numero_track):
 		"""Activa el numero de track de la marca 
 		de tiempo en la cual esta el cursor."""
-		if not numero_track.isdigit():
+		numero_track = int(numero_track)
+		if numero_track < 0:
 			raise ValueError("Debe ingresar un numero de track.")
 		self.actual.track_on(int(numero_track))
 
 	def desactivar_track(self, numero_track):
 		"""Desactiva el numero de track de la marca 
 		de tiempo en la cual esta el cursor."""
-		if not numero_track.isdigit():
+		numero_track = int(numero_track)
+		if numero_track < 0::
 			raise ValueError("Debe ingresar un numero de track.")
 		self.actual.track_off(int(numero_track))
 
@@ -516,9 +518,9 @@ class Reproductor:
 		de la cancion. Pasos es una entero mayor a cero. (por defecto es 1).
 		Post: avanza tantos pasos en la cancion.
 		"""
-		if not pasos.isdigit():
-			raise ValueError("Debe ser un numero entero mayor a cero")
 		pasos = int(pasos)
+		if pasos < 0:
+			raise ValueError("Debe ser un numero entero mayor a cero")
 		self.cursor.step(pasos)
 	
 	def back(self, pasos = 1):
@@ -528,9 +530,9 @@ class Reproductor:
 		es 1).
 		Post retrocede tantos pasos en la cancion.
 		"""
-		if not pasos.isdigit():
-			raise ValueError("Debe ser un numero entero mayor a cero")
 		pasos = int(pasos)
+		if pasos < 0:
+			raise ValueError("Debe ser un numero entero mayor a cero")
 		self.cursor.back(pasos)
 
 	def mark_add(self, tiempo):
@@ -579,9 +581,10 @@ class Reproductor:
 		Elimina el track de la posicion indicada.
 		Posicion es un entero.
 		"""
-		if not posicion.isdigit():
+		posicion =int(posicion)
+		if posicion < 0 :
 			raise ValueError("Posicion no valida.")
-		int(posicion)
+		posicion =int(posicion)
 		self.tracks.pop(posicion)
 		self.info.pop(posicion)
 		self.canales -= 1

@@ -600,7 +600,11 @@ class Reproductor:
 		self.cursor.mark_add_prev(tiempo, self.canales)
 
 	def track_add(self, funcion_sonido, frecuencia, volumen): 
-		"""Crea y agrega un nuevo track."""
+		"""
+		Pre: recibe una funcion de la lista de funciones (cadena), una 
+		frecuencia, volumen (enteros o decimales). 
+		Post: crea y agrega un nuevo track.
+		"""
 		duty_cycle = 0.15
 		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle)
 		self.tracks.append(track.dar_sonido())
@@ -611,8 +615,8 @@ class Reproductor:
 
 	def track_del(self, posicion):
 		"""
-		Elimina el track de la posicion indicada.
-		Posicion es un entero.
+		Pre: recibe una posicion. Posicion es un entero.
+		Post: elimina el track de la posicion indicada.
 		"""
 		if posicion < 0 :
 			raise ValueError("Posicion no valida.")
@@ -644,16 +648,6 @@ class Reproductor:
 			raise IndexError("No existe track en este indice.")
 		self.cursor.desactivar_track(indice)
 
-	def sonar(self, tiempo, lista_de_tracks):
-		"""
-		Pre: recibe un tiempo en segundos, y la cantidad de canales (ambos enteros).
-		Post: reproduce los tracks en el tiempo dado.
-		"""
-		tiempo = float(tiempo) 
-		canales = self.canales # NUEVA ACTUALIZACION
-		sp = soundPlayer.SoundPlayer(canales)
-		sp.play_sounds(lista_de_tracks, tiempo)
-
 	def obtener_sonidos(self, tracks_habilitados):
 		"""
 		Pre: Recibe una lista de indices a los tracks habilitados.
@@ -670,6 +664,7 @@ class Reproductor:
 		y una lista de tracks habilitados.
 		Post: reproduce la cantidad recibida de marcas de tiempo (tuplas).   
 		"""
+		reproductor_interno = soundPlayer.SoundPlayer(self.canales)
 		tiempos_y_sonidos = [] 
 		
 		for tiempo_y_habilitado in tiempos_y_habilitados:
@@ -680,7 +675,39 @@ class Reproductor:
 		for tiempo_y_sonido in tiempos_y_sonidos:
 			tiempo_B = tiempo_y_sonido[0]
 			sonidos_B = tiempo_y_sonido[1] 
-			self.sonar(tiempo_B, sonidos_B)
+			reproductor_interno.play_sounds(tiempo_B, sonidos_B)
+
+	def reproducir_marca(self):
+		"""
+		Reproduce la marca actual.
+		"""
+		tiempos_y_tracks_habilitados = self.cursor.obtener_marca()
+		self.reproducir(tiempos_y_tracks_habilitados)
+
+	def reproducir_completo(self):
+		"""
+		Reproduce la cancion completa.
+		"""
+		tiempos_y_tracks_habilitados = self.cursor.obtener_cancion_completa()
+		self.reproducir(tiempos_y_tracks_habilitados)
+
+	def reproducir_marcas(self, marcas):
+		"""
+		Pre: recibe un entero.
+		Post: reproduce la siguientes marcas, contando desde la posicion actual.
+		"""
+		marcas = int(marcas)
+		tiempos_y_tracks_habilitados = self.cursor.obtener_proximas_x_marcas(marcas)
+		self.reproducir(tiempos_y_tracks_habilitados)
+
+	def reproducir_segundos(self, segundos):
+		"""
+		Pre: recibe un entero o decimal.
+		Post: reproduce los siguientes segundos desde la posicion actual.
+		"""
+		segundos = float(segundos)
+		tiempos_y_tracks_habilitados = self.cursor.obtener_segundos_hasta(segundos)
+		self.reproducir(tiempos_y_tracks_habilitados)
 
 	def store(self, nombre_de_archivo):
 		"""
@@ -688,7 +715,7 @@ class Reproductor:
 		"""
 		nombre = str(nombre_de_archivo)
 		cursor_auxiliar = Cursor(self.cancion)
-		tiempos_y_tracks = cursor_auxiliar.track_obtener()
+		tiempos_y_tracks = cursor_auxiliar.obtener_cancion_completa()
 		tiempo_anterior = None
 		
 		with open(nombre + ".plp", 'w') as _archivo:

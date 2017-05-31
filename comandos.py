@@ -3,9 +3,8 @@ import cmd
 import TP3objetos
 #-----------------------------------------------------------------------
 
-
 REPRODUCTOR = TP3objetos.Reproductor()
-CURSOR = TP3objetos.Cursor(REPRODUCTOR)
+
 #-----------------------------------------------------------------------
 
 class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
@@ -24,32 +23,36 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 
 	def do_STEP (self, parametro):
 		"""Avanza a la siguiente marca de tiempo."""
-		CURSOR.step()
+		REPRODUCTOR.step()
 
 	def do_BACK(self, parametro):
 		"""Retrocede a la anterior marca de tiempo."""
-		CURSOR.back()
+		REPRODUCTOR.back()
 		
 	def do_STEPM (self, parametro):
 		"""Avanza N marcas de tiempo hacia adelante."""
-		if parametro.isdigit():
-			CURSOR.step(int(parametro))
+		if not parametro.isdigit():
+			print("Comando invalido")
+			return
+		CURSOR.step(int(parametro))
 		
 	def do_BACKM(self, parametro):
 		"""Retrocede N marcas de tiempo hacia atras."""
 		if parametro.isdigit():
-			CURSOR.back(int(parametro))
+			print("Comando Invalido")
+			return
+		CURSOR.back(int(parametro))
 
 	def do_TRACKADD(self, parametro):
 		"""Agrega un track con el sonido indicado."""
-		[funcion, frecuencia, volumen] = parametro.split(" ")
+		[funcion, frecuencia, volumen] = parametro.split(",")
 		if frecuencia.isdigit() and volumen: #validar float volumen
 			REPRODUCTOR.track_add(funcion, int(frecuencia), float(volumen))
 
 	def do_TRACKDEL(self, parametro):
 		"""Elimina un track por numero."""
 		if parametro.isdigit():
-			numero = int(parametro) - 1 #por?
+			numero = int(parametro) - 1 
 			REPRODUCTOR.track_del(numero)
 
 	def do_MARKADD(self, parametro):
@@ -85,22 +88,26 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 
 	def do_PLAY(self, parametro):
 		"""Reproduce la marca en la que se encuentra el cursor actualmente."""
-		CURSOR.reproducir_marca()
+		REPRODUCTOR.reproducir_marca()
 
 	def do_PLAYALL(self, parametro):
 		"""Reproduce la cancion completa desde el inicio."""
-		CURSOR.reproducir_todo()
+		REPRODUCTOR.reproducir_completa()
 
 	def do_PLAYMARKS(self, parametro):
 		"""Reproduce las proximas marcas dadas por parametro desde donde se
 		encuentra el cursor actualmente."""
-		if parametro.isdigit():
-			CURSOR.reproducir_hasta(int(parametro))
+		if not parametro.isdigit():
+			print("Comando Invalido")
+			return
+		REPRODUCTOR.reproducir_marcas(int(parametro))
 
 	def do_PLAYSECONDS(self, parametro):
 		"""Reproduce los proximos segundos dados desde donde esta el cursor."""
-		if parametro:#float
-			CURSOR.reproducir_segundos(parametro)
+		if not parametro.isdigit():
+			print("Comando invalido")
+			return
+		CURSOR.reproducir_segundos(float(parametro))
 
 Shell().cmdloop()
 

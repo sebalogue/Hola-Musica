@@ -271,7 +271,6 @@ class Track():
 		return self.sonido
 #-----------------------------------------------------------------------------------
 
-
 class IteradorListaEnlazada: #doc. 
 	"""Representa un iterador que va y vuelve."""
 	def __init__(self, lista_enlazada):
@@ -287,44 +286,37 @@ class IteradorListaEnlazada: #doc.
 		Devuelve True si la lista esta vacia. 
 		False en caso contrario.
 		"""
-		if not self.actual:
-			return True
-		return False
+		return self.lista.len == 0
 
 	def elemento_actual(self):
 		"""Devuelve el elemento actual"""
 		if not self.actual:
-			raise ValueError("Lista Vacia")
+			return
 		return self.actual.dato
 
 	def avanzar(self):
 		"""Pasa al siguiente elemento de la lista."""
-		if not self.lista.len:
-			raise ValueError("Lista Vacia")
-		if not self.actual.prox:
-			raise StopIteration("Fin de la lista")
+		if self.esta_vacia() or not self.actual.prox:
+			return
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual
 		self.actual = self.actual.prox
-		dato = self.actual.dato
-		return dato
+		return self.actual.dato
 
 	def retroceder(self):
 		"""Vuelve al elemento anterior de la lista."""
-		if not self.lista.len:
-			raise ValueError("Lista Vacia")
-		if self.anterior is None:
-			raise StopIteration("Principio de la lista")
+		if self.esta_vacia() or self.pila_anteriores.esta_vacia(): #raise o return solo?
+			return
 		self.actual = self.anterior
-		dato = self.anterior.dato
 		self.anterior = self.pila_anteriores.desapilar()
-		return dato
+		return self.actual.dato
 
 	def insertar(self, dato):
 		"""Inserta un elemento en la posicion actual del iterador."""
-		if (self.lista.len == 0) or (self.anterior == None):
+		if self.lista.len <= 1:
 			self.lista._insertar_prim(dato)
 			self.actual = self.lista.prim
+			self.lista.len += 1
 			return
 		nodo = _Nodo(dato)
 		self.anterior.prox = nodo
@@ -430,11 +422,11 @@ class Cursor:
 		con la duracion indicada.
 		"""
 		if  not self.actual or self.posicion == (len(self.cancion) - 1):
-			dato = MarcaDeTiempo(duracion, canales)
+			dato = MarcaDeTiempo(float(duracion), self.canales)
 			self.iterador._insertar_ultimo(dato)
 			return
 		self.actual = self.iterador.avanzar()	
-		mark_add(duracion)
+		self.mark_add(float(duracion))
 		self.actual = self.iterador.retroceder()
 
 	def mark_add_prev(self, duracion, canales):
@@ -443,25 +435,27 @@ class Cursor:
 		con la duracion indicada.
 		"""
 		if self.posicion == 0:
-			mark_add(duracion)
+			mark_add(float(duracion))
 			self.avanzar()
 			return
 		self.actual = self.iterador.retroceder()
-		mark_add(duracion)
+		mark_add(float(duracion))
 		self.actual = self.iterador.avanzar()
 
 	def activar_track(self, numero_track):
 		"""Activa el numero de track de la marca 
 		de tiempo en la cual esta el cursor."""
-		if type(numero_track) != int:
-			raise ValueError ("Debe ingresar un numero de track.")
+		if not numero_track.isdigit():
+			print ("Debe ingresar un numero de track.")
+			return
 		self.actual.track_on(int(numero_track))
 
 	def desactivar_track(self, numero_track):
 		"""Desactiva el numero de track de la marca 
 		de tiempo en la cual esta el cursor."""
-		if type(numero_track) != int:
-			raise ValueError ("Debe ingresar un numero de track.")
+		if not numero_track.isdigit():
+			print ("Debe ingresar un numero de track.")
+			return
 		self.actual.track_off(int(numero_track))
 
 	def reproducir_marca(self):
@@ -504,7 +498,6 @@ class Cursor:
 			segundos -= tiempo_marca
 		self.reproducor.reproducir(a_sonar)		
 #-----------------------------------------------------------------------------------
-
 
 class Reproductor: 
 	"""Representa un reproductor de sonidos."""
@@ -580,6 +573,9 @@ class Reproductor:
 		"""
 		Crea y agrega un nuevo track.
 		"""
+
+	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): #porque cursor_auxiliar? no lo tendria que agregar al self.cursor?
+		"""Crea y agrega un nuevo track."""
 		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle=0.5)
 		self.tracks.append(track.dar_sonido())
 		self.info.append([funcion_sonido.upper(), frecuencia, volumen])
@@ -587,7 +583,7 @@ class Reproductor:
 		cursor_auxiliar = Cursor(self)
 		cursor_auxiliar.track_add()
 
-	def track_del(self, posicion):
+	def track_del(self, posicion): #aca tambien por que otro cursor? 
 		"""
 		Elimina el track de la posicion indicada.
 		Posicion es un entero.
@@ -639,7 +635,7 @@ class Reproductor:
 
 	def store(self, nombre_de_archivo):
 		"""
-		Convierte el la cancion (lista enlazada) en un archivo.plp.
+		Convierte la cancion (lista enlazada) en un archivo.plp.
 		"""
 		nombre = str(nombre_de_archivo)
 		cursor_auxiliar = Cursor(self.cancion)
@@ -647,14 +643,12 @@ class Reproductor:
 		tiempo_anterior = None
 		
 		with open(nombre + ".plp", 'w') as _archivo:
-			escritor_A = csv.writer(_archivo, delimiter = ",")
-			
+			escritor_A = csv.writer(_archivo, delimiter = ",")		
 			escritor_A.writerow(["C", self.canales])
 			
 			for sonido in self.info:
 				escritor_A.writerow(["S", "|".join(sonido)])
-			
-			
+						
 			for tiempo, tracks in tiempos_y_tracks:
 				lista_de_tracks = []
 
@@ -673,14 +667,12 @@ class Reproductor:
 	def load(self, cancion):
 		"""
 		Carga una cancion al reproductor.
-		Cancion es un archivo.plp con formato de concion.
+		Cancion es un archivo.plp con formato de cancion.
 		"""
 		steps = 0
 		with open(cancion) as _cancion:
 			lector = csv.reader(_cancion, delimiter = ",")
-
 			linea = next(lector, None)
-
 			tiempo_anterior = None
 			while linea:
 				indice = linea[0]
@@ -689,22 +681,16 @@ class Reproductor:
 				if indice == "C":
 					self.canales = int(datos)
 					self.cursor.canales = int(datos) #No dejar asi, buscar alternativa mas correcta 
-					linea = next(lector, None)
-					continue
 				
 				if indice == "S":
 					info = datos.split("|")
 					funcion, frecuencia, volumen = info
 					self.track_add(funcion.lower(), int(frecuencia), float(volumen))
-					linea = next(lector, None)
-					continue
-				
+
 				if indice == "T":
 					tiempo = float(datos)
 					if tiempo != tiempo_anterior:
 						tiempo_anterior = tiempo
-					linea = next(lector, None)
-					continue
 				
 				if indice == "N":
 					try:
@@ -719,8 +705,8 @@ class Reproductor:
 						if track == "#":
 							self.cursor.activar_track(contador)
 						contador += 1
-					linea = next(lector, None)
-					continue
+				linea = next(lector, None)
+					
 		self.cursor.back(steps)
 
 

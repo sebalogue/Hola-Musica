@@ -8,105 +8,99 @@ REPRODUCTOR = TP3objetos.Reproductor()
 CURSOR = TP3objetos.Cursor(REPRODUCTOR)
 #-----------------------------------------------------------------------
 
-
 class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 
 	intro = "Bienvenido a 'Sounds of Cyber City'\n Ingrese help o ? para listar los comandos.\n"
 	prompt = "->> "
 
-	def do_LOAD(self, archivo): #falta
+	def do_LOAD(self, parametro): 
 		"""Carga la cancion desde el archivo. 
 		Reemplaza la cancion en edicion actual si es que la hay."""
-		REPRODUCTOR.load(archivo)
+		REPRODUCTOR.load(parametro)
 
-	def do_STORE (self, archivo):#falta
+	def do_STORE (self, parametro):
 		"""Guarda la cancion."""
-		REPRODUCTOR.store(archivo)
+		REPRODUCTOR.store(parametroa)
 
 	def do_STEP (self, parametro):
 		"""Avanza a la siguiente marca de tiempo."""
-		try:
-			CURSOR.step()
-		except StopIteration:
-			print("Este es el fin de la cancion, no puede avanzar mas.")
-		except ValueError:
-			print("La cancion esta vacia. \n Por favor, cargue una cancion o genere una.")
+		CURSOR.step()
 
 	def do_BACK(self, parametro):
 		"""Retrocede a la anterior marca de tiempo."""
-		try:
-			CURSOR.back()
-		except StopIteration:
-			print("Este es el principio de la cancion, no puede retroceder mas.")
-		except ValueError:
-			print("No hay cancion cargadas o creadas. \n Por favor, cargue una cancion o genera")
-
-	def do_STEPM (self, n):
+		CURSOR.back()
+		
+	def do_STEPM (self, parametro):
 		"""Avanza N marcas de tiempo hacia adelante."""
-		if type(n) != int:
-			print("Tipo de dato recibido incorrecto. \n Por favor, ingrese un numero valido.")
-			return
-		CURSOR.step(n)
-
-	def do_BACKM(self, n):
+		if parametro.isdigit():
+			CURSOR.step(int(parametro))
+		
+	def do_BACKM(self, parametro):
 		"""Retrocede N marcas de tiempo hacia atras."""
-		if type(n) != int:
-			print("Tipo de dato recibido incorrecto. \n Por favor, ingrese un numero valido.")
-			return
-		CURSOR.back(n)
+		if parametro.isdigit():
+			CURSOR.back(int(parametro))
 
-	def do_TRACKADD(self, funcion, frecuencia, volumen):
+	def do_TRACKADD(self, parametro):
 		"""Agrega un track con el sonido indicado."""
-		REPRODUCTOR.track_add()
+		[funcion, frecuencia, volumen] = parametro.split(" ")
+		if frecuencia.isdigit() and volumen: #validar float volumen
+			REPRODUCTOR.track_add(funcion, int(frecuencia), float(volumen))
 
-	def do_TRACKDEL(self, numero_track):
+	def do_TRACKDEL(self, parametro):
 		"""Elimina un track por numero."""
-		numero = numero_track - 1
-		REPRODUCTOR.track_del(numero)
+		if parametro.isdigit():
+			numero = int(parametro) - 1 #por?
+			REPRODUCTOR.track_del(numero)
 
-	def do_MARKADD(self, duracion):
+	def do_MARKADD(self, parametro):
 		"""Agrega una marca de tiempo de la duracion establecida."""
-		CURSOR.mark_add(duracion)
+		if parametro: #validar float
+			CURSOR.mark_add(float(parametro))
 
-	def do_MARKADDNEXT(self, duracion):
+	def do_MARKADDNEXT(self, parametro):
 		"""Agrega una marca de tiempo de la duracion establecida
 		luego de la marca en la cual esta
 		actualmente el cursor"""
-		CURSOR.mark_add_next(duracion)
+		if parametro:#float
+			CURSOR.mark_add_next(float(parametro))
 
-	def do_MARKADDPREV(self, duracion):
+	def do_MARKADDPREV(self, parametro):
 		"""Agrega una marca de tiempo de la duracion establecida
 		antes de la marca en la cual esta
 		actualmente el cursor"""
-		CURSOR.mark_add_prev(duracion)
+		if parametro:#float
+			CURSOR.mark_add_prev(float(parametro))
 
-	def do_TRACKON(self, numero_track):
+	def do_TRACKON(self, parametro):
 		"""Habilita al track durante la marca de tiempo
 		en la cual esta parada el cursor."""
-		CURSOR.activar_track(numero_track)
+		if parametro.isdigit():
+			CURSOR.activar_track(int(parametro))
 
-	def do_TRACKOFF(self, numero_track):
+	def do_TRACKOFF(self, parametro):
 		"""Desabilita al track durante la marca de tiempo
 		 en la cual esta parada el cursor."""
-		CURSOR.desactivar_track(numero_track)
+		if parametro.isdigit():
+			CURSOR.desactivar_track(int(parametro))
 
 	def do_PLAY(self, parametro):
 		"""Reproduce la marca en la que se encuentra el cursor actualmente."""
 		CURSOR.reproducir_marca()
 
 	def do_PLAYALL(self, parametro):
-		"""Reproduce la canci´on completa desde el inicio."""
+		"""Reproduce la cancion completa desde el inicio."""
 		CURSOR.reproducir_todo()
 
-	def do_PLAYMARKS(self, marcas):
+	def do_PLAYMARKS(self, parametro):
 		"""Reproduce las proximas marcas dadas por parametro desde donde se
 		encuentra el cursor actualmente."""
-		CURSOR.reproducir_hasta(marcas)
+		if parametro.isdigit():
+			CURSOR.reproducir_hasta(int(parametro))
 
-	def do_PLAYSECONDS(self, segundos):
+	def do_PLAYSECONDS(self, parametro):
 		"""Reproduce los proximos segundos dados desde donde esta el cursor."""
-		CURSOR.reproducir_segundos(segundos)
-
+		if parametro:#float
+			CURSOR.reproducir_segundos(parametro)
 
 Shell().cmdloop()
 

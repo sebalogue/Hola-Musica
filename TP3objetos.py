@@ -291,7 +291,7 @@ class IteradorListaEnlazada: #doc.
 	def elemento_actual(self):
 		"""Devuelve el elemento actual"""
 		if not self.actual:
-			return
+			return None
 		return self.actual.dato
 
 	def avanzar(self):
@@ -344,13 +344,9 @@ class Cursor:
 	"""Representa un cursor que recorre las marcas de tiempo de una cancion"""
 	def __init__(self, reproductor):
 		"""Crea el cursor."""
-		self.reproductor = reproductor
 		self.cancion = self.reproductor.dar_cancion()
 		self.iterador = IteradorListaEnlazada(self.cancion)
 		self.posicion = 0
-		if self.iterador.esta_vacia():
-			self.actual = None
-			return
 		self.actual = self.iterador.elemento_actual()
 
 	def step(self, n = 1):
@@ -443,66 +439,103 @@ class Cursor:
 		self.actual = self.iterador.avanzar()
 
 	def activar_track(self, numero_track):
-		"""Activa el numero de track de la marca 
-		de tiempo en la cual esta el cursor."""
-		if not numero_track.isdigit():
-			print ("Debe ingresar un numero de track.")
-			return
+		"""
+		Activa el numero de track de la marca 
+		de tiempo en la cual esta el cursor.
+		"""
 		self.actual.track_on(int(numero_track))
 
 	def desactivar_track(self, numero_track):
-		"""Desactiva el numero de track de la marca 
-		de tiempo en la cual esta el cursor."""
-		if not numero_track.isdigit():
-			print ("Debe ingresar un numero de track.")
-			return
+		"""
+		Desactiva el numero de track de la marca 
+		de tiempo en la cual esta el cursor.
+		"""
 		self.actual.track_off(int(numero_track))
 
-	def reproducir_marca(self):
-		"""Reproduce la marca de tiempo en el que se encuentra el cursor."""
-		marca_tiempo = self.actual			   
-		self.reproductor.reproducir([marca_tiempo.dar_tiempo_y_habilitados()])		   
+	def obtener_marca(self):
+		"""Devuelve la marca de tiempo en el que se encuentra el cursor."""
+		if not self.actual:
+			raise ValueError("Cancion vacia.")
+		return [self.actual.dar_tiempo_y_habilitados()]			   
+				   
 
 	def reproducir_todo(self):
 		"""Reproduce toda la cancion representada por la lista."""
-		marca_de_tiempo = self.cancion.prim
+		iterador_auxiliar
+		marca_actual =  self.cancion.prim
 		cancion = []
 		while marca_de_tiempo:
 			cancion.append(marca_de_tiempo.dato.dar_tiempo_y_habilitados())
 			marca_de_tiempo = marca_de_tiempo.prox
 		self.reproductor.reproducir(cancion)
 
-	def reproducir_hasta(self, marca):
-		"""Reproduce la cantidad de marcas dadas por parametro
-		desde la marca de tiempo actual."""
-		marca_actual = self.actual
-		i = 0
-		a_sonar =[]
-		while marca_actual and (i <= marca): 
-			a_sonar.append(marca_actual.dar_tiempo_y_habilitados())
-			marca_actual = marca_actual.prox
-			i += 1
-		self.reproducor.reproducir(a_sonar)
+	def obtener_proximas_x_marcas(self, marca):
+		"""
+		Pre: recibe un entero correspondiente a las marcas a 
+		obtener desde la posicion actual.
+		Post: devuelve una lista de listas con el tiempo y los 
+		tracks activados con las proximas marcas desde la 
+		posicion.
+		"""
+		marca = int(marca)
 
-	def reproducir_segundos(self, segundos):
-		"""Reproduce los proximos segundos dados por parametro 
-		desde la posicion actual del cursor."""
+		if marca < 1:
+			raise ValueError("Marca deber ser mayor a 1.")
+		if posicion + marca > len(self.cancion):
+			raise ValueError("No hay tantas marcas desde esta posicion") 
+		
 		marca_actual = self.actual
-		tiempo_marca = marca_actual.dar_tiempo()
+		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
+		for _ in range(self.posicion):
+			iterador_auxiliar.avanzar()
+		
+		if not marca_actual:
+			raise ValueError("Cancion vacia.")
+
+		i = 0
+		tiempos_y_tracks = []
+		while marca_actual and (i < marca): 
+			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
+			marca_actual = iterador_auxiliar.avanzar()
+			i += 1
+		return tiempos_y_tracks
+
+	def obtener_segundos_hasta(self, segundos):
+		"""
+		Pre: recibe segundos (entero o decimal) mayor a cero.
+		Post: devuelve una lista de listas con los tiempos y tracks 
+		habilitados desde la posicion actual hasta que las suma de 
+		sus tiempo acumulados alcancen a los segundos dados por parametro.
+		"""
 		segundos = float(segundos)
-		a_sonar = []
-		while segundos >= tiempo_marca and marca_actual: #SWAP
-			a_sonar.append(marca_actual.dar_tiempo_y_habilitados())
-			marca_actual = marca_actual.prox
+		
+		if segundos <= 0:
+			raise ValueError("Segundos debe ser mayor a cero.")
+		if not self.actual:
+			raise ValueError("Cancion vacia.")
+		
+		marca_actual = self.actual
+		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
+		for _ in range(self.posicion):
+			iterador_auxiliar.avanzar()
+		
+		tiempo_marca = marca_actual.dar_tiempo()
+		tiempos_y_tracks = []
+		while marca_actual and segundos >= tiempo_marca: 
+			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
+			marca_actual = iterador_auxiliar.avanzar()
 			tiempo_marca = marca_actual.dar_tiempo()
 			segundos -= tiempo_marca
-		self.reproducor.reproducir(a_sonar)		
+		return tiempos_y_tracks
 #-----------------------------------------------------------------------------------
 
 class Reproductor: 
 	"""Representa un reproductor de sonidos."""
 	def __init__(self):
-		"""Crea el reproductor de canciones, el cual inicia sin ninguna cancion."""
+		"""
+		Crea el reproductor de canciones, el cual inicia sin ninguna 
+		cancion.
+		"""
 		self.cancion = ListaEnlazada() 
 		self.canales = 0 
 		self.tracks = []
@@ -569,14 +602,10 @@ class Reproductor:
 			raise ValueError("Tiempo deber ser un numero mayor a cero.")
 		self.cursor.mark_add_prev(tiempo, self.canales)
 
-	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): 
-		"""
-		Crea y agrega un nuevo track.
-		"""
-
-	def track_add(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5): #porque cursor_auxiliar? no lo tendria que agregar al self.cursor?
+	def track_add(self, funcion_sonido, frecuencia, volumen): #porque cursor_auxiliar? no lo tendria que agregar al self.cursor?
 		"""Crea y agrega un nuevo track."""
-		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle=0.5)
+		duty_cycle = 0.15
+		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle)
 		self.tracks.append(track.dar_sonido())
 		self.info.append([funcion_sonido.upper(), frecuencia, volumen])
 		self.canales += 1
@@ -588,12 +617,34 @@ class Reproductor:
 		Elimina el track de la posicion indicada.
 		Posicion es un entero.
 		"""
-		int(posicion)
+		posicion = int(posicion)
 		self.tracks.pop(posicion-1)
 		self.info.pop(posicion-1)
 		self.canales -= 1
 		cursor_auxiliar = Cursor(cancion)
 		cursor_auxiliar.track_del(posicion-1)
+
+	def track_on(self, indice_de_track):
+		"""
+		Pre: recibe el indice (entero) del track a activar. 
+		Indice es mayor cero, y menor o igual a la cantidad de canales.  
+		Post: activa el track en la posicion actual del cursor.
+		"""
+		indice = int(indice_de_track)
+		if (indice < 0) or (indice > self.canales - 1):
+			raise IndexError("No existe track en este indice.")
+		self.cursor.activar_track(indice)
+
+	def track_off(self, indice_de_track):
+		"""
+		Pre: recibe el indice (entero) del track a activar. 
+		Indice es mayor cero, y menor o igual a la cantidad de canales.  
+		Post: activa el track en la posicion actual del cursor.
+		"""
+		indice = int(indice_de_track)
+		if (indice < 0) or (indice < self.canales - 1):
+			raise IndexError("No existe track en este indice.")
+		self.cursor.desactivar_track(indice)
 
 	def sonar(self, tiempo, lista_de_tracks):
 		"""

@@ -482,7 +482,7 @@ class Cursor:
 
 		if marca < 1:
 			raise ValueError("Marca deber ser mayor a 1.")
-		if posicion + marca > len(self.cancion):
+		if self.posicion + marca > len(self.cancion):
 			raise ValueError("No hay tantas marcas desde esta posicion") 
 		
 		marca_actual = self.actual
@@ -522,11 +522,13 @@ class Cursor:
 		
 		tiempo_marca = marca_actual.dar_tiempo()
 		tiempos_y_tracks = []
-		while marca_actual and segundos >= tiempo_marca: 
+		i = 0
+		while marca_actual and segundos >= tiempo_marca and (i < len(self.cancion) - 1): 
 			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
 			marca_actual = iterador_auxiliar.avanzar()
 			tiempo_marca = marca_actual.dar_tiempo()
 			segundos -= tiempo_marca
+			i += 1
 		return tiempos_y_tracks
 #-----------------------------------------------------------------------------------
 
@@ -544,9 +546,16 @@ class Reproductor:
 		self.cursor = Cursor(self.cancion) 
 
 	def dar_cancion(self):
-		"""Devuevlve la cancion cargada"""
+		"""
+		Devuevlve la cancion cargada.
+		"""
 		return self.cancion
 
+	def dar_canales(self):
+		"""
+		Devuelve los canales de la cancion.
+		"""
+		return self.canales
 	def step(self, pasos = 1):
 		"""
 		Pre: Recibe una cantidad de pasos a avanzar en la linea de tiempo 

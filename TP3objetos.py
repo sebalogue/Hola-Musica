@@ -320,7 +320,7 @@ class IteradorListaEnlazada: #doc.
 
 	def insertar(self, dato):
 		"""Inserta un elemento en la posicion actual del iterador."""
-		if (len(self.lista) <= 1):
+		if self.posicion == 0:
 			self.lista._insertar_prim(dato) 
 			self.actual = self.lista.prim 
 			return self.actual.dato
@@ -447,11 +447,12 @@ class Cursor:
 			dato = MarcaDeTiempo(float(duracion), canales)
 			self.iterador._insertar_principio(dato)
 			self.posicion += 1
-			print("SWAG")
+			print(":D")
 			return
-		print("sWAG 2")
 		self.actual = self.back()
 		self.mark_add(float(duracion), canales)
+		print(":E")
+		self.actual = self.step()
 		self.actual = self.step()
 
 	def activar_track(self, numero_track):
@@ -650,7 +651,7 @@ class Reproductor:
 		duty_cycle = 0.15
 		track = Track(funcion_sonido, frecuencia, volumen, duty_cycle)
 		self.tracks.append(track.dar_sonido())
-		self.info.append([funcion_sonido.upper(), frecuencia, volumen])
+		self.info.append([funcion_sonido.upper(), str(frecuencia), str(volumen)])
 		self.canales += 1
 		cursor_auxiliar = Cursor(self.cancion)
 		cursor_auxiliar.track_add()
@@ -686,7 +687,7 @@ class Reproductor:
 		Post: activa el track en la posicion actual del cursor.
 		"""
 		indice = int(indice_de_track)
-		if (indice < 0) or (indice < self.canales - 1):
+		if not (indice >= 0) or not (indice <= self.canales - 1):
 			raise IndexError("No existe track en este indice.")
 		self.cursor.desactivar_track(indice)
 

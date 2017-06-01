@@ -27,7 +27,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 	def do_STORE (self, parametro):
 		"""Guarda la cancion."""
 		nombre_archivo = str(parametro)
-		self.reproductor.store(parametroa)
+		self.reproductor.store(parametro)
 
 	def do_STEP (self, parametro):
 		"""Avanza a la siguiente marca de tiempo."""
@@ -65,15 +65,13 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 			print("Comando invalido")
 			return
 		self.reproductor.back(int(parametro))
-		self.posicion -= parametro
+		self.posicion -= int(parametro)
 
 	def do_TRACKADD(self, parametro):
 		"""Agrega un track con el sonido indicado."""
 		[funcion, frecuencia, volumen] = parametro.split(",")
-		if not frecuencia.isdigit():
-			print("Comando invalido")
-			return 
 		try:
+			frecuencia = float(frecuencia)
 			volumen = float(volumen)
 		except ValueError:
 			print("Comando invalido")
@@ -81,7 +79,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 		if not funcion.lower() in self.funciones_sonido:
 			print("Comando invalido")
 			return
-		self.reproductor.track_add(funcion.lower(), int(frecuencia), float(volumen))
+		self.reproductor.track_add(funcion.lower(), float(frecuencia), float(volumen))
 		self.canales += 1
 
 	def do_TRACKDEL(self, parametro):
@@ -130,8 +128,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 		except ValueError:
 			print("Comando inavalido")
 			return
-		if self.posicion == 0:
-			self.posicion += 1
+		self.posicion += 1
 		self.reproductor.mark_add_prev(tiempo)
 
 

@@ -235,7 +235,6 @@ class MarcaDeTiempo: #doc
 		"""Devuelve una tupla con el tiempo y los tracks habilitados de la marca de tiempo."""
 		tiempo_y_habilitados = (self.dar_tiempo(), self.tracks_habilitados())
 		return tiempo_y_habilitados
-
 #-----------------------------------------------------------------------------------
 
 FUNCIONES_SONIDO = {

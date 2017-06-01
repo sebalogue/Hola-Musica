@@ -61,6 +61,7 @@ class ListaEnlazada():
 		nodo.prox = self.prim
 		self.prim = nodo
 		self.len += 1
+		return nodo
 
 	def insert(self, posicion, dato):
 		"""Inserta un elemento en la posicion indicada"""	
@@ -201,8 +202,6 @@ class MarcaDeTiempo:
 
 	def track_on(self, track):
 		"""Habilita el numero de track de la marca de tiempo."""
-		print(self.tracks)
-		print(track)
 		self.tracks[track] = True
 
 	def track_off(self, track):
@@ -282,6 +281,7 @@ class IteradorListaEnlazada: #doc.
 		self.anterior = None #no puede recibir una clase _Nodo() vacia, ademas hay que manterner la estructura del objeto intacta.
 		self.actual = lista_enlazada.prim
 		self.pila_anteriores = Pila()
+		self.posicion = 0
 
 	def dar_lista_act(self): #En el Reproductor ya habia un metodo que devolvia la cancion
 		return self.lista
@@ -306,6 +306,7 @@ class IteradorListaEnlazada: #doc.
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual
 		self.actual = self.actual.prox
+		self.posicion += 1
 		return self.actual.dato
 
 	def retroceder(self):
@@ -314,11 +315,12 @@ class IteradorListaEnlazada: #doc.
 			raise StopIteration("No hay mas elementos en la lista.")
 		self.actual = self.anterior
 		self.anterior = self.pila_anteriores.desapilar()
+		self.posicion -= 1
 		return self.actual.dato
 
 	def insertar(self, dato):
 		"""Inserta un elemento en la posicion actual del iterador."""
-		if len(self.lista) <= 1:
+		if (len(self.lista) <= 1):
 			self.lista._insertar_prim(dato) 
 			self.actual = self.lista.prim 
 			return self.actual.dato
@@ -341,6 +343,18 @@ class IteradorListaEnlazada: #doc.
 		self.actual.prox = nodo
 		self.lista.len += 1
 
+	def _insertar_principio(self, dato):
+		"""
+		Pre: la lista no esta vacia. y nos encontramos al principio de la misma.
+		Post: Inserta un elemento al principio de la lista
+		"""
+		if not self.actual:
+			raise ValueError("Lista vacia")
+		if not (self.posicion == 0):
+			raise IndexError("Este no es el principio de la lista")
+		self.anterior = self.lista._insertar_prim(dato)
+		self.pila_anteriores.apilar(None)
+		self.posicion += 1
 #-----------------------------------------------------------------------------------
 
 class Cursor:
@@ -388,6 +402,7 @@ class Cursor:
 			actual.track_add()
 			actual = iterador_a.avanzar()
 			i += 1
+		actual.track_add()
 
 	def track_del(self, posicion_de_track):
 		"""
@@ -429,11 +444,14 @@ class Cursor:
 		con la duracion indicada.
 		"""
 		if self.posicion == 0:
-			self.mark_add(float(duracion), canales)
-			self.step()
+			dato = MarcaDeTiempo(float(duracion), canales)
+			self.iterador._insertar_principio(dato)
+			self.posicion += 1
+			print("SWAG")
 			return
+		print("sWAG 2")
 		self.actual = self.back()
-		self.mark_add(float(duracion))
+		self.mark_add(float(duracion), canales)
 		self.actual = self.step()
 
 	def activar_track(self, numero_track):
@@ -468,10 +486,11 @@ class Cursor:
 		if not marca_actual:
 			raise ValueError("Cancion vacia.")
 		tiempos_y_tracks = []
+		tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
 		i = 0
 		while marca_actual and (i < len(self.cancion)-1):
-			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
 			marca_actual = iterador_auxiliar.avanzar()
+			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
 			i += 1
 		return tiempos_y_tracks
 
@@ -499,11 +518,13 @@ class Cursor:
 		if not marca_actual:
 			raise ValueError("Cancion vacia.")
 
-		i = 0
 		tiempos_y_tracks = []
-		while marca_actual and (i < marca): 
-			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
+		tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
+		
+		i = 0
+		while marca_actual and (i < marca - 1): 
 			marca_actual = iterador_auxiliar.avanzar()
+			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
 			i += 1
 		return tiempos_y_tracks
 
@@ -528,10 +549,12 @@ class Cursor:
 		
 		tiempo_marca = marca_actual.dar_tiempo()
 		tiempos_y_tracks = []
-		i = 0
-		while marca_actual and segundos >= tiempo_marca and (i < len(self.cancion) - 1): 
+		if tiempo_marca <= segundos:
 			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
+		i = 0
+		while marca_actual and (segundos >= tiempo_marca) and (i < len(self.cancion) - 1): 
 			marca_actual = iterador_auxiliar.avanzar()
+			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
 			tiempo_marca = marca_actual.dar_tiempo()
 			segundos -= tiempo_marca
 			i += 1

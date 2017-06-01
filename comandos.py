@@ -61,7 +61,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 		if not parametro.isdigit():
 			print("Comando Invalido")
 			return
-		if not (self.posicion - parametro >= 0):
+		if not (self.posicion - int(parametro) >= 0):
 			print("Comando invalido")
 			return
 		self.reproductor.back(int(parametro))
@@ -108,7 +108,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 		"""Agrega una marca de tiempo de la duracion establecida
 		luego de la marca en la cual esta
 		actualmente el cursor"""
-		if len(self.canales) == 0:
+		if len(self.cancion) == 0:
 			print("Comando invalido")
 			return
 		try:
@@ -130,7 +130,10 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 		except ValueError:
 			print("Comando inavalido")
 			return
+		if self.posicion == 0:
+			self.posicion += 1
 		self.reproductor.mark_add_prev(tiempo)
+
 
 	def do_TRACKON(self, parametro):
 		"""Habilita al track durante la marca de tiempo
@@ -152,7 +155,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 			print("Comando Invalido")
 			return
 		numero = int(parametro) - 1
-		if not (numero < 0) or not (numero > self.canales - 1):
+		if not (numero >= 0) or not (numero <= self.canales - 1):
 			print("Comando invalido")
 			return
 		self.reproductor.track_off(numero)
@@ -180,6 +183,9 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 		if not parametro.isdigit():
 			print("Comando Invalido")
 			return
+		if not (self.posicion + int(parametro) - 1 <= len(self.cancion) -1):
+			print("Comando invalido")
+			return
 		self.reproductor.reproducir_marcas(int(parametro))
 
 	def do_PLAYSECONDS(self, parametro):
@@ -191,6 +197,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 			float(parametro)
 		except ValueError:
 			print("Comando invalido")
+			return
 		self.reproductor.reproducir_segundos(float(parametro))
 
 Shell().cmdloop()

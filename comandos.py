@@ -139,7 +139,7 @@ class Shell(cmd.Cmd): #definir nombres cursor, etc,...?
 			print("Comando invalido")
 			return
 		numero = int(parametro) - 1
-		if not (numero < 0) or not (numero > self.canales - 1):
+		if not (numero >= 0) or not (numero <= self.canales - 1):
 			print("Comando invalido")
 			return
 		self.reproductor.track_on(numero) 

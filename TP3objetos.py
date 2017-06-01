@@ -187,7 +187,7 @@ class Pila():
 		return tope
 #-----------------------------------------------------------------------------------
 
-class MarcaDeTiempo: #doc
+class MarcaDeTiempo: 
 	"""Representa una marca de tiempo que contiene canales en los cuales se habilitan
 	o desabilitan los tracks."""
 	def __init__(self, tiempo, canales):
@@ -201,6 +201,8 @@ class MarcaDeTiempo: #doc
 
 	def track_on(self, track):
 		"""Habilita el numero de track de la marca de tiempo."""
+		print(self.tracks)
+		print(track)
 		self.tracks[track] = True
 
 	def track_off(self, track):
@@ -381,9 +383,11 @@ class Cursor:
 		"""
 		iterador_a = IteradorListaEnlazada(self.cancion)
 		actual = iterador_a.elemento_actual()
-		while actual:
+		i = 0
+		while actual and (i < len(self.cancion)-1):
 			actual.track_add()
 			actual = iterador_a.avanzar()
+			i += 1
 
 	def track_del(self, posicion_de_track):
 		"""

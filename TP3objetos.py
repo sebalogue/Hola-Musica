@@ -235,7 +235,6 @@ class MarcaDeTiempo: #doc
 		"""Devuelve una tupla con el tiempo y los tracks habilitados de la marca de tiempo."""
 		tiempo_y_habilitados = (self.dar_tiempo(), self.tracks_habilitados())
 		return tiempo_y_habilitados
-
 #-----------------------------------------------------------------------------------
 
 FUNCIONES_SONIDO = {
@@ -278,9 +277,12 @@ class IteradorListaEnlazada: #doc.
 	def __init__(self, lista_enlazada):
 		"""Crea un iterador para una lista enlazada.""" 
 		self.lista = lista_enlazada
-		self.anterior = None
+		self.anterior = None #no puede recibir una clase _Nodo() vacia, ademas hay que manterner la estructura del objeto intacta.
 		self.actual = lista_enlazada.prim
 		self.pila_anteriores = Pila()
+
+	def dar_lista_act(self): #En el Reproductor ya habia un metodo que devolvia la cancion
+		return self.lista
 
 	def esta_vacia(self):
 		"""
@@ -291,14 +293,14 @@ class IteradorListaEnlazada: #doc.
 
 	def elemento_actual(self):
 		"""Devuelve el elemento actual"""
-		if self.esta_vacia():
-			raise ValueError("No hay elementos en la lista.")
+		if not self.actual:
+			return None
 		return self.actual.dato
 
 	def avanzar(self):
 		"""Pasa al siguiente elemento de la lista."""
-		if self.esta_vacia() or not self.actual.prox:
-			raise ValueError("No hay mas elementos en la lista.")
+		if self.esta_vacia() or not self.actual.prox: #_Nodo().dato, pedir dato a la clase _Nodo() no tiene sentido.
+			raise StopIteration("No hay elementos en la lista.")
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual
 		self.actual = self.actual.prox
@@ -307,7 +309,7 @@ class IteradorListaEnlazada: #doc.
 	def retroceder(self):
 		"""Vuelve al elemento anterior de la lista."""
 		if self.pila_anteriores.esta_vacia(): 
-			raise ValueError("No hay mas elementos en la lista.")
+			raise StopIteration("No hay mas elementos en la lista.")
 		self.actual = self.anterior
 		self.anterior = self.pila_anteriores.desapilar()
 		return self.actual.dato
@@ -315,7 +317,7 @@ class IteradorListaEnlazada: #doc.
 	def insertar(self, dato):
 		"""Inserta un elemento en la posicion actual del iterador."""
 		if len(self.lista) <= 1:
-			self.lista._insertar_prim(dato) #_insertar_prim actualiza por si solo el len.
+			self.lista._insertar_prim(dato) 
 			self.actual = self.lista.prim 
 			return self.actual.dato
 		nodo = _Nodo(dato)
@@ -345,11 +347,8 @@ class Cursor:
 		"""Crea el cursor."""
 		self.cancion = cancion
 		self.iterador = IteradorListaEnlazada(self.cancion)
-		self.posicion = 0
-		if not len(cancion):
-			self.actual = None
-			return 
 		self.actual = self.iterador.elemento_actual()
+		self.posicion = 0
 
 	def step(self, n = 1):
 		"""Avanza n veces por la lista."""
@@ -380,9 +379,11 @@ class Cursor:
 		Recorre toda la cancion agregando un nuevo track deshabilitado
 		a las marcas de tiempo.
 		"""
-		while self.actual:
-			self.actual.track_add()
-			self.actual = self.iterador.avanzar() #usar auxiliar
+		iterador_a = IteradorListaEnlazada(self.cancion)
+		actual = iterador_a.elemento_actual()
+		while actual:
+			actual.track_add()
+			actual = iterador_a.avanzar()
 
 	def track_del(self, posicion_de_track):
 		"""
@@ -394,7 +395,6 @@ class Cursor:
 			self.actual.track_del(posicion)
 			self.actual = self.iterador.avanzar() #usar auxliar
 
-
 	def mark_add(self, duracion, canales):
 		"""
 		Agrega una marca de tiempo en la posicion actual del cursor
@@ -404,6 +404,7 @@ class Cursor:
 		dato = MarcaDeTiempo(duracion, canales)
 		self.iterador.insertar(dato)
 		self.actual = dato
+		# self.cancion = self.iterador.dar_lista_act() #No entiendo el proposito de esta linea
 
 	def mark_add_next(self, duracion, canales):
 		"""
@@ -437,7 +438,7 @@ class Cursor:
 		numero_track = int(numero_track)
 		if numero_track < 0:
 			raise ValueError("Debe ingresar un numero de track.")
-		self.actual.track_on(int(numero_track))
+		self.actual.track_on(numero_track)
 
 	def desactivar_track(self, numero_track):
 		"""Desactiva el numero de track de la marca 
@@ -445,7 +446,7 @@ class Cursor:
 		numero_track = int(numero_track)
 		if numero_track < 0:
 			raise ValueError("Debe ingresar un numero de track.")
-		self.actual.track_off(int(numero_track))
+		self.actual.track_off(numero_track)
 
 	def obtener_marca(self):
 		"""
@@ -482,7 +483,8 @@ class Cursor:
 
 		if marca < 1:
 			raise ValueError("Marca deber ser mayor a 1.")
-		if self.posicion + marca > len(self.cancion):
+
+		if self.posicion + marca > len(self.cancion):  # si pasa esto tendria que llegar al final y listo
 			raise ValueError("No hay tantas marcas desde esta posicion") 
 		
 		marca_actual = self.actual

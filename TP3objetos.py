@@ -398,6 +398,8 @@ class Cursor:
 		iterador_a = IteradorListaEnlazada(self.cancion)
 		actual = iterador_a.elemento_actual()
 		i = 0
+		if not actual:
+			return
 		while actual and (i < len(self.cancion)-1):
 			actual.track_add()
 			actual = iterador_a.avanzar()
@@ -410,9 +412,16 @@ class Cursor:
 		el track en la posicion indicada.
 		"""
 		posicion = int(posicion_de_track)
-		while self.actual:
-			self.actual.track_del(posicion)
-			self.actual = self.iterador.avanzar() #usar auxliar
+		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
+		actual = iterador_auxiliar.elemento_actual()		
+		i = 0
+		if not actual:
+			return
+		while actual and (i < len(self.cancion)-1):
+			actual.track_del(posicion)
+			actual = iterador_auxiliar.avanzar() 
+			i += 1
+		actual.track_del(posicion)
 
 	def mark_add(self, duracion, canales):
 		"""
@@ -653,8 +662,7 @@ class Reproductor:
 		self.tracks.append(track.dar_sonido())
 		self.info.append([funcion_sonido.upper(), str(frecuencia), str(volumen)])
 		self.canales += 1
-		cursor_auxiliar = Cursor(self.cancion)
-		cursor_auxiliar.track_add()
+		self.cursor.track_add()
 
 	def track_del(self, posicion):
 		"""
@@ -666,8 +674,7 @@ class Reproductor:
 		self.tracks.pop(posicion)
 		self.info.pop(posicion)
 		self.canales -= 1
-		cursor_auxiliar = Cursor(cancion)
-		cursor_auxiliar.track_del(posicion)
+		self.cursor.track_del(posicion)
 
 	def track_on(self, indice_de_track):
 		"""
@@ -783,13 +790,26 @@ class Reproductor:
 
 				escritor_A.writerow(["N","".join(lista_de_tracks)])
 
+	def reiniciar(self):
+		"""
+		Reinicia la clase reproductor.
+		Coloca todos sus atributos en su estado inicial. 
+		"""
+		self.cancion = ListaEnlazada() 
+		self.canales = 0
+		self.tracks = []
+		self.info = []
+		self.cursor = Cursor(self.cancion) 
+
 	def load(self, cancion):
 		"""
 		Carga una cancion al reproductor.
 		Cancion es un archivo.plp con formato de cancion.
-		"""
+		"""	
 		steps = 0
 		with open(cancion) as _cancion:
+			self.reiniciar()
+			
 			lector = csv.reader(_cancion, delimiter = ",")
 			linea = next(lector, None)
 			tiempo_anterior = None
@@ -798,19 +818,43 @@ class Reproductor:
 				datos = linea[1]
 				
 				if indice == "C":
+					print("A")
+					if not datos.isdigit():
+						self.reiniciar()
+						raise ValueError("Error en lectura del archivo.plp 1")
 					self.canales = int(datos)
-				
+					print("A.1")
 				if indice == "S":
+					print("B")
+					barras = 0
+					for caracter in datos:
+						if caracter == "|":
+							barras += 1
+					if barras != 2:
+						self.reiniciar
+						raise ValueError("Error en lectura del archivo.plp 2")
 					info = datos.split("|")
 					funcion, frecuencia, volumen = info
-					self.track_add(funcion.lower(), int(frecuencia), float(volumen))
+					if not se_puede_convertir_a_flotante(frecuencia) or not (se_puede_convertir_a_flotante(volumen)) or (not funcion.lower() in FUNCIONES_SONIDO):
+						self.reiniciar
+						raise ValueError("Error en lectura del archivo.plp 3")
+					self.track_add(funcion.lower(), float(frecuencia), float(volumen))
 
 				if indice == "T":
-					tiempo = float(datos)
+					print("C")
+					tiempo = datos
+					if not se_puede_convertir_a_flotante(tiempo):
+						self.reiniciar
+						raise ValueError("Error en lectura del archivo.plp 4")
+					tiempo = float(tiempo)
 					if tiempo != tiempo_anterior:
 						tiempo_anterior = tiempo
 				
 				if indice == "N":
+					print("D")
+					if tiempo_anterior is None:
+						self.reiniciar
+						raise ValueError("Error en lectura del archivo.plp 5")
 					if len(self.cancion) == 0: 
 						self.mark_add(tiempo_anterior)
 					else:
@@ -820,14 +864,27 @@ class Reproductor:
 					lista_de_tracks = list(datos)
 					contador = 0
 					for track in lista_de_tracks:
+						if not (track in "#."):
+							self.reiniciar
+							raise ValueError("Error en lectura del archivo.plp 6")
 						if track == "#":
 							self.track_on(contador)
 						contador += 1
 				linea = next(lector, None)
-					
+		print(steps)
 		self.back(steps)
 
 
-
+def se_puede_convertir_a_flotante(cadena):
+	"""
+	Pre: recibe una cadena.
+	Post: Devuelve True si es posible convertirla en flotante, 
+	False en caso contrario.
+	"""
+	try:
+		float(cadena)
+		return True
+	except ValueError:
+		return False
 			
 

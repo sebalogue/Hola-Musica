@@ -8,7 +8,7 @@ Reproductor = reproductor.Reproductor
 
 class Shell(cmd.Cmd): 
 	
-	intro = "Bienvenido a 'Sounds of Cyber City'\n Ingrese help o ? para listar los comandos.\n"
+	intro = "Bienvenido a 'Sounds of Cyber City'\n Ingrese help o ? para listar los comandos.\n Escribir los comandos en mayuscula."
 	prompt = "->> "
 	
 	funciones_sonido = ["noise","silence","sine","square","triangular"]
@@ -160,7 +160,7 @@ class Shell(cmd.Cmd):
 
 	def do_MARKADD(self, tiempo):
 		"""
-		Pre: recibe un tiempo (entero o decimal).
+		Pre: recibe un tiempo (entero o decimal) (segundos).
 		Post: agrega una marca de tiempo de la duracion establecida.
 		"""
 		if not puede_ser_flotante(tiempo):
@@ -171,7 +171,7 @@ class Shell(cmd.Cmd):
 
 	def do_MARKADDNEXT(self, tiempo):
 		"""
-		Pre: recibe un tiempo (entero o decimal).
+		Pre: recibe un tiempo (entero o decimal) (segundos).
 		Post: agrega una marca de tiempo de la duracion establecida 
 		luego de la marca en la cual esta actualmente el cursor.
 		"""
@@ -186,7 +186,7 @@ class Shell(cmd.Cmd):
 
 	def do_MARKADDPREV(self, tiempo):
 		"""
-		Pre: recibe un tiempo (entero o decimal).
+		Pre: recibe un tiempo (entero o decimal) (segundos).
 		Post: agrega una marca de tiempo de la duracion establecida 
 		antes de la marca en la cual esta actualmente el cursor.
 		"""
@@ -268,7 +268,7 @@ class Shell(cmd.Cmd):
 
 	def do_PLAYSECONDS(self, segundos):
 		"""
-		Pre: recibe una cantidad de sugundos (entero o decimal).
+		Pre: recibe una cantidad de segundos (entero o decimal).
 		Post: reproduce los proximos segundos dados desde donde esta el cursor.
 		Atencion! Si se reciben mas segundos de los que hay a continuacion, se 
 		reproduce hasta llegar al final.

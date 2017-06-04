@@ -100,9 +100,9 @@ class Cursor:
 			dato = MarcaDeTiempo(float(duracion), canales)
 			self.iterador.insertar_ultimo(dato)
 			return
-		self.actual = self.avanzar()	
+		self.actual = self.iterador.avanzar()
 		self.marca_agregar(float(duracion), canales)
-		self.actual = self.retroceder()
+		self.actual = self.iterador.retroceder()
 
 	def marca_agregar_previo(self, duracion, canales):
 		"""
@@ -229,12 +229,10 @@ class Cursor:
 		tiempos_y_tracks = []
 		if tiempo_marca <= segundos:
 			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
-		# i = 0
 		while marca_actual and (segundos >= tiempo_marca) and (posicion_auxiliar < len(self.cancion) - 1): 
 			marca_actual = iterador_auxiliar.avanzar()
 			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
 			tiempo_marca = marca_actual.dar_tiempo()
 			segundos -= tiempo_marca
 			posicion_auxiliar += 1
-			# i += 1
 		return tiempos_y_tracks

@@ -4,22 +4,30 @@ class _Nodo():
 	"""Clase que representa un elemento de lista enlazada"""
 	
 	def __init__(self, dato=None, prox=None):
-		"""Pre: recibe un dato a almacenar, y una referencia al proximo Nodo.
-		Post: su estado inicial, son estos dos atributos recibidos."""
+		"""
+		Pre: recibe un dato a almacenar, y una referencia al proximo Nodo.
+		Post: su estado inicial, son estos dos atributos recibidos.
+		"""
 		self.dato = dato
 		self.prox = prox
 
 	def __str__(self):
-		"""Devuelve una reprentacion (cadena) informal del Nodo"""
+		"""
+		Devuelve una reprentacion (cadena) informal del Nodo.
+		"""
 		return str(self.dato)
 
 	def __repr__(self):
-		"""Devuelve una reprentacion (cadena) formal del Nodo"""
+		"""
+		Devuelve una reprentacion (cadena) formal del Nodo.
+		"""
 		return str(self)
 #-----------------------------------------------------------------------------------
 
 class ListaEnlazada():
-	"""Representa una lista de elementos enlazados"""
+	"""
+	Representa una lista de elementos enlazados
+	"""
 	def __init__(self):
 		"""
 		Posee 2 atributos que hacen referencia al primer elemento de 
@@ -30,11 +38,15 @@ class ListaEnlazada():
 		self.len = 0
 
 	def __len__(self):
-		"""Devuelve el largo de la lista (Entero)"""
+		"""
+		Devuelve el largo de la lista (entero).
+		"""
 		return self.len 
 	
 	def __str__(self):
-		"""Devuelve una representacion en cadena de texto de la lista"""		
+		"""
+		Devuelve una representacion en cadena de texto de la lista.
+		"""		
 		cadena = []
 		actual = self.prim		
 		while actual:
@@ -46,11 +58,16 @@ class ListaEnlazada():
 		return "[" + ", ".join(cadena) + "]"
 
 	def __repr__(self):
-		"""Devuelve un representacion formal en cadena de texto de la lista"""
+		"""
+		Devuelve un representacion formal en cadena de texto de la lista.
+		"""
 		return str(self)
 
 	def insertar_primero(self, dato):
-		"""Inserta un dato en la primera posicion"""		
+		"""
+		Pre: recibe un dato cualquiera.
+		Post: inserta un dato en la primera posicion.
+		"""		
 		nodo = _Nodo(dato)		
 		if self.len == 0:
 			self.prim = nodo
@@ -62,7 +79,10 @@ class ListaEnlazada():
 		return nodo
 
 	def insert(self, posicion, dato):
-		"""Inserta un elemento en la posicion indicada"""	
+		"""
+		Pre: recibe un dato cualquiera, y una posicion existente de la lista.
+		Post: inserta un elemento en la posicion indicada
+		"""	
 		if posicion < 0 or posicion > self.len:
 			raise IndexError("Indice fuera de rango")
 		if posicion == 0:
@@ -79,10 +99,15 @@ class ListaEnlazada():
 		self.len += 1
 
 	def append(self, dato):
+		"""
+		Inserta un dato al final de la lista.
+		"""
 		self.insert(self.len, dato)
 
 	def borrar_primero(self):
-		"""Elimina el primer elemento de la lista"""		
+		"""
+		Elimina el primer elemento de la lista.
+		"""		
 		if self.len == 0:
 			raise ValueError("Lista vacia")
 		dato = self.prim.dato
@@ -91,8 +116,10 @@ class ListaEnlazada():
 		return dato
 	
 	def pop(self, posicion = None):
-		"""Elimina el elemento de la posicion indicada, si no 
-		se especifica una posicion, borra el ultimo elemento"""
+		"""
+		Elimina el elemento de la posicion indicada (entero), si no 
+		se especifica una posicion, borra el ultimo elemento
+		"""
 		if posicion is None:
 			posicion = self.len - 1
 		if (posicion < 0) or (posicion >= self.len):
@@ -112,7 +139,9 @@ class ListaEnlazada():
 		return dato
 
 	def remove(self, item):
-		"""Remueve la primera aparacion del item recibido en la lista"""
+		"""
+		Remueve la primera aparacion del item recibido en la lista
+		"""
 		if self.len == 0:
 			raise ValueError("Lista vacia")
 		if self.prim.dato == item:
@@ -129,7 +158,9 @@ class ListaEnlazada():
 		self.len -= 1 
 
 	def index(self, item):
-		"""Devuelve el indice (entero) del elemento recibido."""
+		"""
+		Devuelve el indice (entero) del elemento recibido.
+		"""
 		i = 0		
 		if not self.len:
 			raise ValueError("Lista vacia")
@@ -145,7 +176,9 @@ class ListaEnlazada():
 #-----------------------------------------------------------------------------------
 
 class Pila():
-	"""Clase que representa una pila."""
+	"""
+	Clase que representa una pila.
+	"""
 	def __init__(self):
 		"""
 		Crea una pila vacia.
@@ -188,10 +221,14 @@ class Pila():
 
 
 class IteradorListaEnlazada: 
-	"""Representa un iterador que puede recorrer una lista enlazada
-	tanto avanzando como retrocediendo."""
+	"""
+	Representa un iterador que puede recorrer una lista enlazada
+	tanto avanzando como retrocediendo.
+	"""
 	def __init__(self, lista_enlazada):
-		"""Crea un iterador para una lista enlazada.""" 
+		"""
+		Crea un iterador para una lista enlazada.
+		""" 
 		self.lista = lista_enlazada
 		self.anterior = None 
 		self.actual = lista_enlazada.prim
@@ -206,13 +243,17 @@ class IteradorListaEnlazada:
 		return len(self.lista) == 0
 
 	def elemento_actual(self):
-		"""Devuelve el elemento actual"""
+		"""
+		Devuelve el elemento actual.
+		"""
 		if not self.actual:
 			return None
 		return self.actual.dato
 
 	def avanzar(self):
-		"""Pasa al siguiente elemento de la lista."""
+		"""
+		Pasa al siguiente elemento de la lista.
+		"""
 		if self.esta_vacia() or not self.actual.prox: 
 			raise StopIteration("No hay elementos en la lista.")
 		self.pila_anteriores.apilar(self.anterior)
@@ -222,7 +263,9 @@ class IteradorListaEnlazada:
 		return self.actual.dato
 
 	def retroceder(self):
-		"""Vuelve al elemento anterior de la lista."""
+		"""
+		Vuelve al elemento anterior de la lista.
+		"""
 		if self.pila_anteriores.esta_vacia(): 
 			raise StopIteration("No hay mas elementos en la lista.")
 		self.actual = self.anterior
@@ -231,7 +274,9 @@ class IteradorListaEnlazada:
 		return self.actual.dato
 
 	def insertar(self, dato):
-		"""Inserta un elemento en la posicion actual del iterador."""
+		"""
+		Inserta un elemento en la posicion actual del iterador.
+		"""
 		if self.posicion == 0:
 			self.lista.insertar_primero(dato) 
 			self.actual = self.lista.prim 

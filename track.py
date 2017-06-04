@@ -9,7 +9,9 @@ FUNCIONES_SONIDO = {
 }
 
 class Track():
-	"""Clase que representa un track/pista de sonido"""
+	"""
+	Clase que representa un track/pista de sonido
+	"""
 
 	def __init__(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5):
 		"""
@@ -30,5 +32,7 @@ class Track():
 		self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen)
 	
 	def dar_sonido(self):
-		"""Devuelve el sonido almacenado en el track"""
+		"""
+		Devuelve el sonido almacenado en el track.
+		"""
 		return self.sonido

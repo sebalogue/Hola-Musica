@@ -47,10 +47,10 @@ class Shell(cmd.Cmd):
 		try:
 			self.reproductor.cargar(cancion)
 		except IOError:
-			print("Comando Invalido")
+			print("Comando invalido: archivo no encontrado")
 			return
 		except ValueError:
-			print("Comandos invalido: Error en la lectura del archivo.")
+			print("Comandos invalido: Error en tiempo de lectura.")
 		self.canales = self.reproductor.dar_canales()
 		self.cancion = self.reproductor.dar_cancion()
 		self.posicion = 0
@@ -69,7 +69,7 @@ class Shell(cmd.Cmd):
 		si solo si existe.
 		"""
 		if not (self.posicion < len(self.cancion) - 1):
-			print("Comando invalido")
+			print("Comando invalido: no hay mas marcas por delante")
 			return
 		self.reproductor.avanzar()
 		self.posicion += 1
@@ -80,7 +80,7 @@ class Shell(cmd.Cmd):
 		si solo si existe.
 		"""
 		if self.posicion == 0:
-			print("Comando invalido")
+			print("Comando invalido: no mas marcas por detras")
 			return
 		self.reproductor.retroceder()
 		self.posicion -= 1
@@ -92,10 +92,10 @@ class Shell(cmd.Cmd):
 		Si no hay tanta marcas, se queda es un posicion original.
 		"""
 		if not pasos.isdigit():
-			print("Comando invalido")
+			print("Comando invalido: se esperaba un numero entero.")
 			return
 		if not (self.posicion + int(pasos) <= len(self.cancion) - 1):
-			print("Comando invalido")
+			print("Comando invalido: no hay tantas marcas por delante.")
 			return
 		self.reproductor.avanzar(int(pasos))
 		self.posicion += int(pasos)
@@ -107,10 +107,10 @@ class Shell(cmd.Cmd):
 		Si no hay tanta marcas, se queda es un posicion original.
 		"""
 		if not pasos.isdigit():
-			print("Comando Invalido")
+			print("Comando invalido: se esperaba un numero entero.")
 			return
 		if (not (self.posicion - int(pasos) >= 0)):
-			print("Comando invalido")
+			print("Comando invalido: no hay tantas marcas por detras.")
 			return
 		self.reproductor.retroceder(int(pasos))
 		self.posicion -= int(pasos)
@@ -128,31 +128,32 @@ class Shell(cmd.Cmd):
 			if caracter == ",":
 				comas += 1
 		if comas != 2:
-			print("Comando invalido")
+			print("Comando invalido: los 3 paramentros van separados por 2 comas.")
 			return			
 		funcion, frecuencia, volumen = funcion_frecuencia_volumen.split(",")
 		if (not puede_ser_flotante(frecuencia)) or (not puede_ser_flotante(volumen)):
-			print("Comando invalido")
+			print("Comando invalido: frecuencia y volumen deben ser numeros.")
 			return
 		frecuencia = float(frecuencia)
 		volumen = float(volumen)
-		if not funcion.lower() in self.funciones_sonido:
-			print("Comando invalido")
+		funcion = funcion.lower()
+		if not funcion in self.funciones_sonido:
+			print("Comando invalido: funcion de sonido invalida. Tenga cuidado de no poner espacios.")
 			return
-		self.reproductor.track_agregar(funcion.lower(), float(frecuencia), float(volumen))
+		self.reproductor.track_agregar(funcion, frecuencia, volumen)
 		self.canales += 1
 
 	def do_TRACKDEL(self, indice):
 		"""
 		Pre: recibe el indice de un track existente.
-		Post: Elimina el track del indice recibido.
+		Post: elimina el track del indice recibido.
 		"""
 		if not indice.isdigit():
-			print("Comando invalido")
+			print("Comando invalido: se esperaba un numero entero.")
 			return
 		numero = int(indice) - 1 
 		if not (numero >= 0) or not (numero <= self.canales - 1):
-			print("Comando invalido")
+			print("Comando invalido: indice fuera de rango.")
 			return
 		self.reproductor.track_eliminar(numero)
 		self.canales -= 1
@@ -163,7 +164,7 @@ class Shell(cmd.Cmd):
 		Post: agrega una marca de tiempo de la duracion establecida.
 		"""
 		if not puede_ser_flotante(tiempo):
-			print("Comando Invalido")
+			print("Comando invalido: se esperaba un numero entero o decimal.")
 			return
 		tiempo = float(tiempo)
 		self.reproductor.marca_agregar(tiempo)
@@ -175,10 +176,10 @@ class Shell(cmd.Cmd):
 		luego de la marca en la cual esta actualmente el cursor.
 		"""
 		if len(self.cancion) == 0:
-			print("Comando invalido")
+			print("Comando invalido: no hay marca actual.")
 			return
 		if not puede_ser_flotante(tiempo):
-			print("Comando Invalido")
+			print("Comando invalido: se esperaba un numero entero o decimal.")
 			return
 		tiempo = float(tiempo)
 		self.reproductor.marca_agregar_siguiente(tiempo)
@@ -190,10 +191,10 @@ class Shell(cmd.Cmd):
 		antes de la marca en la cual esta actualmente el cursor.
 		"""
 		if len(self.cancion) == 0:
-			print("Comando invalido")
+			print("Comando invalido: no hay marca actual.")
 			return
 		if not puede_ser_flotante(tiempo):
-			print("Comando Invalido")
+			print("Comando invalido: se esperaba un numero entero o decimal.")
 			return
 		tiempo = float(tiempo)
 		self.posicion += 1
@@ -207,11 +208,11 @@ class Shell(cmd.Cmd):
 		en la cual esta parada el cursor.
 		"""
 		if not indice.isdigit():
-			print("Comando invalido")
+			print("Comando invalido: se esperaba un numero entero.")
 			return
 		numero = int(indice) - 1
 		if not (numero >= 0) or not (numero <= self.canales - 1):
-			print("Comando invalido")
+			print("Comando invalido: indice fuera de rango.")
 			return
 		self.reproductor.track_activar(numero) 
 
@@ -223,11 +224,11 @@ class Shell(cmd.Cmd):
 		en la cual esta parada el cursor.
 		"""
 		if not indice.isdigit():
-			print("Comando Invalido")
+			print("Comando invalido: se esperaba un numero entero.")
 			return
 		numero = int(indice) - 1
 		if not (numero >= 0) or not (numero <= self.canales - 1):
-			print("Comando invalido")
+			print("Comando invalido: indice fuera de rango.")
 			return
 		self.reproductor.track_desactivar(numero)
 
@@ -236,7 +237,7 @@ class Shell(cmd.Cmd):
 		Reproduce la marca en la que se encuentra el cursor actualmente.
 		"""
 		if len(self.cancion) == 0:
-			print("Comando invalido")
+			print("Comando invalido: no hay cancion cargada.")
 			return
 		self.reproductor.reproducir_marca()
 
@@ -245,7 +246,7 @@ class Shell(cmd.Cmd):
 		Reproduce la cancion completa desde el inicio.
 		"""
 		if len(self.cancion) == 0:
-			print("Comando invalido")
+			print("Comando invalido: no hay cancion cargada.")
 			return
 		self.reproductor.reproducir_completa()
 
@@ -254,17 +255,14 @@ class Shell(cmd.Cmd):
 		Pre: recibe un cantidad marcas (entero).
 		Post: reproduce las proximas marcas dadas por parametro desde donde se
 		encuentra el cursor actualmente.
-		Atencion! Si se dan mas marcas de las que hay a continuacion, no se 
-		reproduce ninguna.
+		Atencion! Si se reciben mas marcas de las que hay a continuacion, se 
+		reproduce hasta llegar al final.
 		"""
 		if len(self.cancion) == 0:
-			print("Comando invalido")
+			print("Comando invalido: no cancion cargada.")
 			return
 		if not marcas.isdigit() or (int(marcas)) <= 0:
-			print("Comando Invalido")
-			return
-		if not (self.posicion + int(marcas) - 1 <= len(self.cancion) -1):
-			print("Comando invalido")
+			print("Comando invalido: se esperaba un numero entero y positivo.")
 			return
 		self.reproductor.reproducir_marcas(int(marcas))
 
@@ -272,16 +270,18 @@ class Shell(cmd.Cmd):
 		"""
 		Pre: recibe una cantidad de sugundos (entero o decimal).
 		Post: reproduce los proximos segundos dados desde donde esta el cursor.
+		Atencion! Si se reciben mas segundos de los que hay a continuacion, se 
+		reproduce hasta llegar al final.
 		"""
 		if len(self.cancion) == 0:
-			print("Comando Invalido")
+			print("Comando invalido: no hay cancion cargada.")
 			return
 		if not puede_ser_flotante(segundos):
-			print("Comando Invalido")
+			print("Comando invalido: se esperaba un numero entero o decimal.")
 			return
 		tiempo = float(segundos)
 		if tiempo <= 0:
-			print("Comandos Invalido")
+			print("Comandos invalido: el tiempo ingreasado debe ser positivo.")
 			return
 		self.reproductor.reproducir_segundos(tiempo)
 

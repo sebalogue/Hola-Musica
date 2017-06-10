@@ -1,13 +1,9 @@
 import soundPlayer
 import csv
-import lista_enlazada
-import cursor
-import track
-
-ListaEnlazada = lista_enlazada.ListaEnlazada
-Cursor = cursor.Cursor
-Track = track.Track
-FUNCIONES_SONIDO = track.FUNCIONES_SONIDO
+from lista_enlazada import ListaEnlazada
+from cursor import Cursor
+from track import Track
+from track import FUNCIONES_SONIDO
 
 class Reproductor: 
 	"""Representa un reproductor de sonidos."""

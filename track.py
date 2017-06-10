@@ -18,15 +18,15 @@ class Track():
 		Pre: recibe una funcion perteneciente al diccionario de funciones 
 		de sonido, una frecuencia (entero), volumen (entero) y un ciclo de 
 		trabajo(entero, parametro opcional).
-		Post: la clase track inicia con atributo que corresponde aun sonido 
-		creado por la funcion a traves de los parametros.
+		Post: la clase track inicia con un sonido creado por la funcion a 
+		traves de los parametros.
 		"""
 		frecuencia = float(frecuencia)
 		volumen = float(volumen)	
 		if not funcion_sonido in FUNCIONES_SONIDO:
 			raise ValueError("Funcion invalida")
 		if funcion_sonido == "square":
-			duty_cycle = int(duty_cycle)
+			duty_cycle = float(duty_cycle)
 			self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen, duty_cycle)
 			return
 		self.sonido = FUNCIONES_SONIDO[funcion_sonido](frecuencia, volumen)

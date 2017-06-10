@@ -1,3 +1,5 @@
+from pila import Pila
+
 #-----------------------------------------------------------------------------------
 
 class _Nodo():
@@ -30,9 +32,7 @@ class ListaEnlazada():
 	"""
 	def __init__(self):
 		"""
-		Posee 2 atributos que hacen referencia al primer elemento de 
-		la lista, y al largo de la misma.
-		Inicia con estas referencia en None y 0, respectivamente.
+		Inicia una lista enlazada vacia.
 		"""
 		self.prim = None
 		self.len = 0
@@ -72,7 +72,7 @@ class ListaEnlazada():
 		if self.len == 0:
 			self.prim = nodo
 			self.len += 1
-			return
+			return nodo
 		nodo.prox = self.prim
 		self.prim = nodo
 		self.len += 1
@@ -173,52 +173,8 @@ class ListaEnlazada():
 		if not actual:
 			raise ValueError("Elemento no encontrado")
 		return i 
+
 #-----------------------------------------------------------------------------------
-
-class Pila():
-	"""
-	Clase que representa una pila.
-	"""
-	def __init__(self):
-		"""
-		Crea una pila vacia.
-		Atributos: items (lista de python vacia).
-		"""
-		self.items = []
-
-	def esta_vacia(self):
-		"""
-		Evalua si no hay elementos en la pila. 
-		Devuelve un booleano.
-		"""
-		return len(self.items) == 0
-
-	def apilar(self, item):
-		"""
-		Pre: recibe un item.
-		Post: apila este item en la lista.
-		"""
-		self.items.append(item)
-
-	def desapilar(self):
-		"""
-		Desapila y devuelve el ultimo item ingresado en la pila.
-		"""
-		if self.esta_vacia():
-			raise ValueError("Pila vacia.")
-		return self.items.pop()
-
-	def ver_tope(self):
-		"""
-		Devuelve el ultimo item ingresado.
-		"""	
-		if self.esta_vacia():
-			raise ValueError("Pila vacia")
-		tope = self.desapilar()
-		self.apilar(tope)	
-		return tope
-#-----------------------------------------------------------------------------------
-
 
 class IteradorListaEnlazada: 
 	"""
@@ -228,19 +184,13 @@ class IteradorListaEnlazada:
 	def __init__(self, lista_enlazada):
 		"""
 		Crea un iterador para una lista enlazada.
+		Pre: recibe una lista enlazada.
 		""" 
 		self.lista = lista_enlazada
 		self.anterior = None 
 		self.actual = lista_enlazada.prim
 		self.pila_anteriores = Pila()
 		self.posicion = 0
-
-	def esta_vacia(self):
-		"""
-		Devuelve True si la lista esta vacia. 
-		False en caso contrario.
-		"""
-		return len(self.lista) == 0
 
 	def elemento_actual(self):
 		"""
@@ -254,7 +204,7 @@ class IteradorListaEnlazada:
 		"""
 		Pasa al siguiente elemento de la lista.
 		"""
-		if self.esta_vacia() or not self.actual.prox: 
+		if (not len(self.lista)) or (not self.actual.prox): 
 			raise StopIteration("No hay elementos en la lista.")
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual

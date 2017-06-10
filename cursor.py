@@ -29,8 +29,7 @@ class Cursor:
 			raise StopIteration("Fin de la cancion.")
 		for veces in range(n):
 			self.actual = self.iterador.avanzar()
-			if self.posicion < len(self.cancion):
-				self.posicion += 1
+			self.posicion += 1
 
 	def retroceder(self, n = 1):
 		"""
@@ -43,8 +42,7 @@ class Cursor:
 			raise StopIteration("Principio de la cancion.")
 		for veces in range(n):
 			self.actual = self.iterador.retroceder()
-			if self.posicion > 0:
-				self.posicion -= 1
+			self.posicion -= 1
 	
 	def track_agregar(self):
 		"""

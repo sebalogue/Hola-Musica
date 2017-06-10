@@ -1,9 +1,9 @@
 import cmd
 
-import reproductor
+from reproductor import Reproductor
+from reproductor import se_puede_convertir_a_flotante
 #-----------------------------------------------------------------------
-puede_ser_flotante = reproductor.se_puede_convertir_a_flotante
-Reproductor = reproductor.Reproductor
+puede_ser_flotante = se_puede_convertir_a_flotante
 #-----------------------------------------------------------------------
 
 class Shell(cmd.Cmd): 
@@ -40,17 +40,17 @@ class Shell(cmd.Cmd):
 		el mismo, sin mdificacion externa, podra ser cargado
 		con normalidad.
 		Atencion! El programa tambien puede recibir archivos 
-		con formato plp no genrados por el mismo, pero es 
+		con formato plp no generados por el mismo, pero es 
 		muy sensible a los espacios y al tipo de letra, por 
 		lo que no siempre podra cargar estos otros archivos.
 		"""
 		try:
 			self.reproductor.cargar(cancion)
 		except IOError:
-			print("Comando invalido: archivo no encontrado")
+			print("Comando invalido: archivo no encontrado.")
 			return
 		except ValueError:
-			print("Comandos invalido: Error en tiempo de lectura.")
+			print("Comandos invalido: El archivo no tiene un formato valido.")
 		self.canales = self.reproductor.dar_canales()
 		self.cancion = self.reproductor.dar_cancion()
 		self.posicion = 0
@@ -87,12 +87,12 @@ class Shell(cmd.Cmd):
 		
 	def do_STEPM (self, pasos):
 		"""
-		Pre: recibe la cantidad de pasos (entero) a realizar.
+		Pre: recibe la cantidad de pasos (entero mayor a cero) a realizar. 
 		Post: avanza N marcas de tiempo hacia adelante.
 		Si no hay tanta marcas, se queda es un posicion original.
 		"""
-		if not pasos.isdigit():
-			print("Comando invalido: se esperaba un numero entero.")
+		if (not pasos.isdigit()) or (int(pasos) <= 0):
+			print("Comando invalido: se esperaba un numero entero mayor a cero.")
 			return
 		if not (self.posicion + int(pasos) <= len(self.cancion) - 1):
 			print("Comando invalido: no hay tantas marcas por delante.")
@@ -106,8 +106,8 @@ class Shell(cmd.Cmd):
 		Retrocede N marcas de tiempo hacia atras.
 		Si no hay tanta marcas, se queda es un posicion original.
 		"""
-		if not pasos.isdigit():
-			print("Comando invalido: se esperaba un numero entero.")
+		if (not pasos.isdigit()) or (int(pasos) <= 0):
+			print("Comando invalido: se esperaba un numero entero mayor a cero.")
 			return
 		if (not (self.posicion - int(pasos) >= 0)):
 			print("Comando invalido: no hay tantas marcas por detras.")
@@ -123,14 +123,11 @@ class Shell(cmd.Cmd):
 		"noise","silence","sine","square","triangular".
 		Post: Agrega un track con el sonido indicado.
 		"""
-		comas = 0
-		for caracter in funcion_frecuencia_volumen:
-			if caracter == ",":
-				comas += 1
-		if comas != 2:
-			print("Comando invalido: los 3 paramentros van separados por 2 comas.")
-			return			
-		funcion, frecuencia, volumen = funcion_frecuencia_volumen.split(",")
+		datos = funcion_frecuencia_volumen.split(",")
+		if len(datos) != 3:
+			print("Comando invalido: parametros erroneos.")
+			return
+		funcion, frecuencia, volumen = datos
 		if (not puede_ser_flotante(frecuencia)) or (not puede_ser_flotante(volumen)):
 			print("Comando invalido: frecuencia y volumen deben ser numeros.")
 			return
@@ -148,11 +145,11 @@ class Shell(cmd.Cmd):
 		Pre: recibe el indice de un track existente.
 		Post: elimina el track del indice recibido.
 		"""
-		if not indice.isdigit():
-			print("Comando invalido: se esperaba un numero entero.")
+		if (not indice.isdigit()) or (not int(indice)):
+			print("Comando invalido: se esperaba un numero entero mayor a cero.")
 			return
 		numero = int(indice) - 1 
-		if not (numero >= 0) or not (numero <= self.canales - 1):
+		if not (numero <= self.canales - 1):
 			print("Comando invalido: indice fuera de rango.")
 			return
 		self.reproductor.track_eliminar(numero)
@@ -207,11 +204,11 @@ class Shell(cmd.Cmd):
 		Post: Habilita al track en la marca de tiempo
 		en la cual esta parada el cursor.
 		"""
-		if not indice.isdigit():
-			print("Comando invalido: se esperaba un numero entero.")
+		if (not indice.isdigit()) or (not int(indice)):
+			print("Comando invalido: se esperaba un numero entero mayor a cero.")
 			return
 		numero = int(indice) - 1
-		if not (numero >= 0) or not (numero <= self.canales - 1):
+		if not (numero <= self.canales - 1):
 			print("Comando invalido: indice fuera de rango.")
 			return
 		self.reproductor.track_activar(numero) 
@@ -223,11 +220,11 @@ class Shell(cmd.Cmd):
 		Post: deshabilita al track en la marca de tiempo
 		en la cual esta parada el cursor.
 		"""
-		if not indice.isdigit():
-			print("Comando invalido: se esperaba un numero entero.")
+		if (not indice.isdigit()) or (not int(indice)):
+			print("Comando invalido: se esperaba un numero entero mayor a cero.")
 			return
 		numero = int(indice) - 1
-		if not (numero >= 0) or not (numero <= self.canales - 1):
+		if not (numero <= self.canales - 1):
 			print("Comando invalido: indice fuera de rango.")
 			return
 		self.reproductor.track_desactivar(numero)

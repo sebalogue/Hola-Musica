@@ -13,7 +13,7 @@ class Track():
 	Clase que representa un track/pista de sonido
 	"""
 
-	def __init__(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.5):
+	def __init__(self, funcion_sonido, frecuencia, volumen, duty_cycle=0.15):
 		"""
 		Pre: recibe una funcion perteneciente al diccionario de funciones 
 		de sonido, una frecuencia (entero), volumen (entero) y un ciclo de 

@@ -15,13 +15,13 @@ class _Nodo():
 
 	def __str__(self):
 		"""
-		Devuelve una reprentacion (cadena) informal del Nodo.
+		Devuelve una reprentacion (cadena) legible del Nodo.
 		"""
 		return str(self.dato)
 
 	def __repr__(self):
 		"""
-		Devuelve una reprentacion (cadena) formal del Nodo.
+		Devuelve una reprentacion (cadena) con la informacion de la instancia del Nodo.
 		"""
 		return str(self)
 #-----------------------------------------------------------------------------------
@@ -125,8 +125,7 @@ class ListaEnlazada():
 		if (posicion < 0) or (posicion >= self.len):
 			raise IndexError("Indice fuera de rango")
 		if (posicion == 0) or (self.len == 0):
-			dato = self.borrar_primero()
-			return dato
+	 		return self.borrar_primero()
 		anterior = self.prim
 		actual = self.prim.prox
 		i = 0
@@ -205,7 +204,7 @@ class IteradorListaEnlazada:
 		Pasa al siguiente elemento de la lista.
 		"""
 		if (not len(self.lista)) or (not self.actual.prox): 
-			raise StopIteration("No hay elementos en la lista.")
+			raise StopIteration("Esta al final.")
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual
 		self.actual = self.actual.prox
@@ -217,7 +216,7 @@ class IteradorListaEnlazada:
 		Vuelve al elemento anterior de la lista.
 		"""
 		if self.pila_anteriores.esta_vacia(): 
-			raise StopIteration("No hay mas elementos en la lista.")
+			raise StopIteration("Esta al principio.")
 		self.actual = self.anterior
 		self.anterior = self.pila_anteriores.desapilar()
 		self.posicion -= 1
@@ -236,6 +235,7 @@ class IteradorListaEnlazada:
 		nodo.prox = self.actual
 		self.actual = nodo
 		self.lista.len += 1
+		return self.actual.dato
 	
 	def insertar_ultimo(self, dato):
 		"""

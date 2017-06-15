@@ -1,7 +1,7 @@
 class MarcaDeTiempo: 
 	"""
 	Representa una marca de tiempo que contiene canales en los cuales se habilitan
-	o desabilitan los tracks.
+	o deshabilitan los tracks.
 	"""
 	def __init__(self, tiempo, canales):
 		"""
@@ -29,7 +29,7 @@ class MarcaDeTiempo:
 	
 	def track_agregar(self):
 		"""
-		Agrega un nuevo track deshabiltado al final de la lista.
+		Agrega un nuevo track deshabiltado a la marca de tiempo.
 		"""
 		self.tracks.append(False)
 		self.canales += 1

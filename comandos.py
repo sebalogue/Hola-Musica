@@ -1,9 +1,7 @@
 import cmd
 
 from reproductor import Reproductor
-from reproductor import se_puede_convertir_a_flotante
-#-----------------------------------------------------------------------
-puede_ser_flotante = se_puede_convertir_a_flotante
+from track import FUNCIONES_SONIDO
 #-----------------------------------------------------------------------
 
 class Shell(cmd.Cmd): 
@@ -11,7 +9,6 @@ class Shell(cmd.Cmd):
 	intro = "Bienvenido a 'Sounds of Cyber City'\n Ingrese help o ? para listar los comandos.\n Escribir los comandos en mayuscula."
 	prompt = "->> "
 	
-	funciones_sonido = ["noise","silence","sine","square","triangular"]
 	reproductor = Reproductor()
 	canales = reproductor.dar_canales()
 	cancion = reproductor.dar_cancion()
@@ -128,13 +125,14 @@ class Shell(cmd.Cmd):
 			print("Comando invalido: parametros erroneos.")
 			return
 		funcion, frecuencia, volumen = datos
-		if (not puede_ser_flotante(frecuencia)) or (not puede_ser_flotante(volumen)):
+		try:
+			frecuencia = float(frecuencia)
+			volumen = float(volumen)
+		except ValueError:
 			print("Comando invalido: frecuencia y volumen deben ser numeros.")
 			return
-		frecuencia = float(frecuencia)
-		volumen = float(volumen)
 		funcion = funcion.lower()
-		if not funcion in self.funciones_sonido:
+		if not funcion in FUNCIONES_SONIDO:
 			print("Comando invalido: funcion de sonido invalida. Tenga cuidado de no poner espacios.")
 			return
 		self.reproductor.track_agregar(funcion, frecuencia, volumen)
@@ -160,10 +158,11 @@ class Shell(cmd.Cmd):
 		Pre: recibe un tiempo (entero o decimal) (segundos).
 		Post: agrega una marca de tiempo de la duracion establecida.
 		"""
-		if not puede_ser_flotante(tiempo):
+		try:
+			tiempo = float(tiempo)
+		except ValueError:
 			print("Comando invalido: se esperaba un numero entero o decimal.")
 			return
-		tiempo = float(tiempo)
 		self.reproductor.marca_agregar(tiempo)
 
 	def do_MARKADDNEXT(self, tiempo):
@@ -175,10 +174,11 @@ class Shell(cmd.Cmd):
 		if len(self.cancion) == 0:
 			print("Comando invalido: no hay marca actual.")
 			return
-		if not puede_ser_flotante(tiempo):
+		try:
+			tiempo = float(tiempo)
+		except ValueError:
 			print("Comando invalido: se esperaba un numero entero o decimal.")
 			return
-		tiempo = float(tiempo)
 		self.reproductor.marca_agregar_siguiente(tiempo)
 
 	def do_MARKADDPREV(self, tiempo):
@@ -190,10 +190,11 @@ class Shell(cmd.Cmd):
 		if len(self.cancion) == 0:
 			print("Comando invalido: no hay marca actual.")
 			return
-		if not puede_ser_flotante(tiempo):
+		try:
+			tiempo = float(tiempo)
+		except ValueError:
 			print("Comando invalido: se esperaba un numero entero o decimal.")
 			return
-		tiempo = float(tiempo)
 		self.posicion += 1
 		self.reproductor.marca_agregar_previo(tiempo)
 
@@ -256,10 +257,10 @@ class Shell(cmd.Cmd):
 		reproduce hasta llegar al final.
 		"""
 		if len(self.cancion) == 0:
-			print("Comando invalido: no cancion cargada.")
+			print("Comando invalido: no hay cancion cargada.")
 			return
-		if not marcas.isdigit() or (int(marcas)) <= 0:
-			print("Comando invalido: se esperaba un numero entero y positivo.")
+		if not marcas.isdigit() or (int(marcas)) == 0:
+			print("Comando invalido: se esperaba un numero entero mayor a cero.")
 			return
 		self.reproductor.reproducir_marcas(int(marcas))
 
@@ -273,10 +274,11 @@ class Shell(cmd.Cmd):
 		if len(self.cancion) == 0:
 			print("Comando invalido: no hay cancion cargada.")
 			return
-		if not puede_ser_flotante(segundos):
+		try:
+			tiempo = float(segundos)
+		except ValueError:
 			print("Comando invalido: se esperaba un numero entero o decimal.")
 			return
-		tiempo = float(segundos)
 		if tiempo <= 0:
 			print("Comandos invalido: el tiempo ingreasado debe ser positivo.")
 			return

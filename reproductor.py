@@ -220,18 +220,22 @@ class Reproductor:
 				escritor_A.writerow(["S", "|".join(sonido)])
 						
 			for tiempo, tracks in tiempos_y_tracks:
-				cadena_de_tracks = ""
+				tiempo_anterior = self._convertir_tracks(tiempo, tracks, tiempo_anterior, escritor_A)			
 
-				if tiempo != tiempo_anterior:
-					escritor_A.writerow(["T", tiempo])
-					tiempo_anterior = tiempo
-
-				for canal in range(self.canales):
-					if canal in tracks:
-						cadena_de_tracks += "#"
-						continue
-					cadena_de_tracks += "."
-				escritor_A.writerow(["N",cadena_de_tracks])
+	def _guardar_tracks(self, tiempo, tracks, tiempo_anterior, escritor):
+		"""Escribe en el archivo las marcas de tiempo. Devuelve el tiempo de la marca
+		anterior escrita para actualizarlo."""
+		cadena_de_tracks = ""
+		if tiempo != tiempo_anterior:
+			escritor_A.writerow(["T", tiempo])
+			tiempo_anterior = tiempo
+		for canal in range(self.canales):
+			if canal in tracks:
+				cadena_de_tracks += "#"
+				continue
+			cadena_de_tracks += "."
+		escritor_A.writerow(["N",cadena_de_tracks])
+		return tiempo_anterior
 
 	def _cargar_canales(self, canales):
 		"""

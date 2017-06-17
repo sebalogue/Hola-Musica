@@ -213,14 +213,14 @@ class Reproductor:
 		tiempo_anterior = None
 		
 		with open(nombre + ".plp", 'w', newline = '') as _ :
-			escritor_A = csv.writer( _ , delimiter = ",")		
-			escritor_A.writerow(["C", self.canales])
+			escritor = csv.writer( _ , delimiter = ",")		
+			escritor.writerow(["C", self.canales])
 			
 			for sonido in self.info_tracks:
-				escritor_A.writerow(["S", "|".join(sonido)])
+				escritor.writerow(["S", "|".join(sonido)])
 						
 			for tiempo, tracks in tiempos_y_tracks:
-				tiempo_anterior = self._guardar_tracks(tiempo, tracks, tiempo_anterior, escritor_A)			
+				tiempo_anterior = self._guardar_tracks(tiempo, tracks, tiempo_anterior, escritor)			
 
 	def _guardar_tracks(self, tiempo, tracks, tiempo_anterior, escritor):
 		"""Escribe en el archivo las marcas de tiempo. Devuelve el tiempo de la marca

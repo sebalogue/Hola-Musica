@@ -47,13 +47,11 @@ class Cursor:
 		"""
 		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
 		actual = iterador_auxiliar.elemento_actual()
-		i = 0
 		if not actual:
 			return
-		while actual and (i < len(self.cancion)-1):
+		while actual and not iterador_auxiliar.esta_al_final():
 			actual.track_agregar()
 			actual = iterador_auxiliar.avanzar()
-			i += 1
 		actual.track_agregar()
 
 	def track_eliminar(self, posicion_de_track):
@@ -64,13 +62,11 @@ class Cursor:
 		posicion = int(posicion_de_track)
 		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
 		actual = iterador_auxiliar.elemento_actual()		
-		i = 0
 		if not actual:
 			return
-		while actual and (i < len(self.cancion)-1):
+		while actual and not iterador_auxiliar.esta_al_final():
 			actual.track_eliminar(posicion)
 			actual = iterador_auxiliar.avanzar() 
-			i += 1
 		actual.track_eliminar(posicion)
 
 	def marca_agregar(self, duracion, canales):
@@ -136,22 +132,60 @@ class Cursor:
 			raise ValueError("Cancion vacia.")
 		return [self.actual.dar_tiempo_y_habilitados()]			   			   
 	
-	def obtener_cancion_completa(self):
+	def _obtener_tiempos_y_tracks_hasta(self, mensaje, limite, factor=None):
 		"""
-		Reproduce toda la cancion representada por la lista.
+		Pre: recibe un limite (entero o decimal) de hasta donde obtendra datos desde la posicion actual 
+		inclusive, un mensaje (cadena) de error en caso de que la limite recibida sea menor a 1,
+		un factor (entero o decimal) que junto al limite estableceran una condicion (limite >= factor)
+		durante el ciclo.
+		Si no se recibe limite, recorrera desde el principio de la cancion.
+		Si no se recibe un factor, la funcion, toma comportamiento exclusivo para obtener segundos. 
+		Post: devuelve una lista de lista con los tiempos y tracks desde la posicion actual hasta 
+		la limite recibida.
 		"""
+		if not self.actual:
+			raise ValueError("Cancion Vacia.")
+		if limite and limite <= 0:
+			raise ValueError(mensaje)
+
+		marca_actual = self.actual
 		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
-		marca_actual = iterador_auxiliar.elemento_actual()
-		if not marca_actual:
-			raise ValueError("Cancion vacia.")
+		posicion_auxiliar = 0
 		tiempos_y_tracks = []
-		tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
-		i = 0
-		while marca_actual and (i < len(self.cancion)-1):
+
+		if limite:
+			for _ in range(self.posicion):
+				iterador_auxiliar.avanzar()
+				posicion_auxiliar += 1
+		else:
+			limite = len(self.cancion) - 2
+
+		if factor is None:
+			comodin = marca_actual.dar_tiempo()
+			if comodin <= limite:
+				tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
+		else:
+			comodin = factor
+			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
+	
+		while marca_actual and (limite >= comodin) and (posicion_auxiliar < len(self.cancion) - 1):
 			marca_actual = iterador_auxiliar.avanzar()
 			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
-			i += 1
-		return tiempos_y_tracks
+			if factor is None:
+				comodin = marca_actual.dar_tiempo()
+				limite -= comodin
+			else:
+				comodin += 1
+			posicion_auxiliar += 1
+	
+		return tiempos_y_tracks	
+
+	def obtener_cancion_completa(self):
+		"""
+		Devuelve una lista de listas con el tiempo y los 
+		tracks activados de toda la cancion representada por la lista.
+		"""
+		return self._obtener_tiempos_y_tracks_hasta(None, None, 0)
 
 	def obtener_proximas_x_marcas(self, marca):
 		"""
@@ -161,32 +195,9 @@ class Cursor:
 		tracks activados con las proximas marcas desde la 
 		posicion.
 		"""
-		marca = int(marca)
-
-		if marca < 1:
-			raise ValueError("Marca deber ser mayor a 0.")
-		
-		marca_actual = self.actual
-		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
-		posicion_auxiliar = 0
-		for _ in range(self.posicion):
-			iterador_auxiliar.avanzar()
-			posicion_auxiliar += 1
-		
-		if not marca_actual:
-			raise ValueError("Cancion vacia.")
-
-		tiempos_y_tracks = []
-		tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
-		
-		i = 0
-		while marca_actual and (i < marca - 1) and (posicion_auxiliar < len(self.cancion) - 1): 
-			marca_actual = iterador_auxiliar.avanzar()
-			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
-			posicion_auxiliar += 1
-			i += 1
-
-		return tiempos_y_tracks
+		marca = int(marca) - 2
+		mensaje = "Marca debe ser mayor a 0"
+		return self._obtener_tiempos_y_tracks_hasta(mensaje,marca,0)
 
 	def obtener_segundos_hasta(self, segundos):
 		"""
@@ -196,28 +207,5 @@ class Cursor:
 		sus tiempo acumulados alcancen a los segundos dados por parametro.
 		"""
 		segundos = float(segundos)
-		
-		if segundos <= 0:
-			raise ValueError("Segundos debe ser mayor a cero.")
-		if not self.actual:
-			raise ValueError("Cancion vacia.")
-		
-		marca_actual = self.actual
-		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
-		posicion_auxiliar = 0
-		for _ in range(self.posicion):
-			iterador_auxiliar.avanzar()
-			posicion_auxiliar += 1
-
-		
-		tiempo_marca = marca_actual.dar_tiempo()
-		tiempos_y_tracks = []
-		if tiempo_marca <= segundos:
-			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
-		while marca_actual and (segundos >= tiempo_marca) and (posicion_auxiliar < len(self.cancion) - 1): 
-			marca_actual = iterador_auxiliar.avanzar()
-			tiempos_y_tracks.append(marca_actual.dar_tiempo_y_habilitados())
-			tiempo_marca = marca_actual.dar_tiempo()
-			segundos -= tiempo_marca
-			posicion_auxiliar += 1
-		return tiempos_y_tracks
+		mensaje = "Segundos debe ser mayor a cero"
+		return self._obtener_tiempos_y_tracks_hasta(mensaje,segundos,None)

@@ -154,7 +154,7 @@ class Cursor:
 		Reproduce toda la cancion representada por la lista.
 		"""
 		iterador_auxiliar = IteradorListaEnlazada(self.cancion)
-		marca_actual =  iterador_auxiliar.elemento_actual()
+		marca_actual = iterador_auxiliar.elemento_actual()
 		if not marca_actual:
 			raise ValueError("Cancion vacia.")
 		tiempos_y_tracks = []

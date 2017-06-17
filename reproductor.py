@@ -9,16 +9,20 @@ DUTY_CYCLE = 0.15
 
 class Reproductor: 
 	"""Representa un reproductor de sonidos."""
-	def __init__(self):
+	def __init__(self, cancion=None):
 		"""
-		Crea el reproductor de canciones, el cual inicia sin ninguna 
-		cancion.
+		Pre: Recibe una cancion (ubicacion de un archivo.plp).
+		Post: incia un reproductor con la cancion recibida cargada. 
+		Si no se recibe cancion, el reproductor inicia con una 
+		cancion vacia.
 		"""
-		self.cancion = ListaEnlazada() 
 		self.canales = 0 
 		self.tracks = []
 		self.info_tracks = []
-		self.cursor = Cursor(self.cancion) 
+		self.cancion = ListaEnlazada() 
+		self.cursor = Cursor(self.cancion)
+		if cancion:
+			self.cargar(cancion)		 
 
 	def dar_cancion(self):
 		"""
@@ -146,7 +150,7 @@ class Reproductor:
 		"""
 		lista_de_sonidos = []
 		for indice in  tracks_habilitados:
-			lista_de_sonidos.append(self.tracks[indice]) #Podriamos validar esto de alguna manera, con un metodo en Track.
+			lista_de_sonidos.append(self.tracks[indice]) #Podriamos validar esto de alguna manera?.
 		return lista_de_sonidos
 
 	def reproducir(self, tiempos_y_habilitados):
@@ -164,7 +168,7 @@ class Reproductor:
 			tiempos_y_sonidos.append((tiempo, sonidos))
 		
 		for tiempo_y_sonido in tiempos_y_sonidos:
-			tiempo, sonidos = tiempos_y_sonidos[0]
+			tiempo, sonidos = tiempo_y_sonido
 			reproductor_interno.play_sounds(sonidos, tiempo)
 
 	def reproducir_marca(self):
@@ -229,16 +233,78 @@ class Reproductor:
 					cadena_de_tracks += "."
 				escritor_A.writerow(["N",cadena_de_tracks])
 
-	def reiniciar(self):
+	def _cargar_canales(self, canales):
 		"""
-		Reinicia la clase reproductor.
-		Coloca todos sus atributos en su estado inicial. 
+		Pre: recibe la cantidad (entero) de canales a cargar.
+		Post: carga la cantidad de canales.
 		"""
-		self.cancion = ListaEnlazada() 
-		self.canales = 0
-		self.tracks = []
-		self.info_tracks = []
-		self.cursor = Cursor(self.cancion) 
+		if not canales.isdigit() or not (int(canales)):
+			raise ValueError("Error en lectura del archivo.plp 1")
+		self.canales = int(canales)
+
+	def _cargar_sonidos(self, info_sonido):
+		"""
+		Pre: recibe la informacion (cadena) correspondiente a un sondido, de 
+		la forma: funcion_de_sonido|frecuencia|volumen. Donde funcion_de_sonido 
+		es una de las dadas por el programa, frecuencia y volumen son numeros 
+		(enteros o decimales).
+		Post: carga el sonido.
+		"""
+		if self.canales == len(self.tracks):
+			raise ValueError("Error en lectura del archivo.plp 2: hay menos canales que sonidos")
+		info = info_sonido.split("|")
+		if not len(info) == 3:
+			raise ValueError("Error en lectura del archivo.plp 2.5")
+		funcion, frecuencia, volumen = info
+		try:
+			frecuencia = float(frecuencia)
+			volumen = float(volumen)
+		except ValueError:
+			raise ValueError("Error en lectura del archivo.plp 3")
+		funcion = funcion.lower()
+		if not funcion in FUNCIONES_SONIDO:
+			raise ValueError("Error en lectura del archivo.plp 3.5")
+		self.track_agregar(funcion, frecuencia, volumen)
+		self.canales -= 1
+
+	def _actualizar_tiempo(self, tiempo_anterior, tiempo):
+		"""
+		Pre: recibe un tiempo y el tiempo anterior al mismo (ambos enteros).
+		Post: actualiza el tiempo anterior.
+		"""
+		try:
+			tiempo = float(tiempo)
+		except ValueError:
+			raise ValueError("Error en lectura del archivo.plp 4")
+		if tiempo != tiempo_anterior:
+			tiempo_anterior = tiempo
+		return tiempo_anterior
+	
+	def _cargar_marcas(self, tiempo, info_tracks, pasos): # Habria que controlar que el tiempo no sea cero?
+		"""
+		Pre: recibe un tiempo (entero o decimal), informacion de los tracks (cadena de #.) 
+		activados y una cantidad de pasos realizados (entero).
+		Post: Agrega una marca de tiempo con el tiempo dado, activa los tracks correspondiente 
+		a la informacion recibida, y devuelve los pasos actualizados, con los realizados durante
+		la carga.
+		""" 
+		if tiempo is None:
+			raise ValueError("Error en lectura del archivo.plp 5")
+		if len(self.cancion) == 0: 
+			self.marca_agregar(tiempo)
+		else:
+			self.marca_agregar_siguiente(tiempo)
+			self.avanzar()
+			pasos += 1
+		lista_de_tracks = list(info_tracks)
+		contador = 0
+		for track in lista_de_tracks:
+			if not (track in "#."):
+				raise ValueError("Error en lectura del archivo.plp 6")
+			if track == "#":
+				self.track_activar(contador)
+			contador += 1
+		return pasos
 
 	def cargar(self, cancion):
 		"""
@@ -247,68 +313,19 @@ class Reproductor:
 		"""	
 		pasos = 0
 		with open(cancion) as _cancion:
-			self.reiniciar()
-			
 			lector = csv.reader(_cancion, delimiter = ",")
 			linea = next(lector, None)
 			tiempo_anterior = None
 			while linea:
 				indice = linea[0]
 				datos = linea[1]
-				
 				if indice == "C":
-					if not datos.isdigit():
-						self.reiniciar()
-						raise ValueError("Error en lectura del archivo.plp 1")
-					self.canales = int(datos)
-
+					self._cargar_canales(datos)
 				if indice == "S":
-					info = datos.split("|")
-					if not len(info) == 3:
-						self.reiniciar()
-						raise ValueError("Error en lectura del archivo.plp 2")
-					funcion, frecuencia, volumen = info
-					try:
-						frecuencia = float(frecuencia)
-						volumen = float(volumen)
-					except ValueError:
-						self.reiniciar()
-						raise ValueError("Error en lectura del archivo.plp 3")
-					funcion = funcion.lower()
-					if not funcion in FUNCIONES_SONIDO:
-						self.reiniciar()
-						raise ValueError("Error en lectura del archivo.plp 3.5")
-					self.track_agregar(funcion, frecuencia, volumen)
-					self.canales -= 1
-
+					self._cargar_sonidos(datos)
 				if indice == "T":
-					tiempo = datos
-					try:
-						tiempo = float(tiempo)
-					except ValueError:
-						self.reiniciar()
-						raise ValueError("Error en lectura del archivo.plp 4")
-					if tiempo != tiempo_anterior:
-						tiempo_anterior = tiempo
-				
+					tiempo_anterior = self._actualizar_tiempo(tiempo_anterior, datos)
 				if indice == "N":
-					if tiempo_anterior is None:
-						self.reiniciar()
-						raise ValueError("Error en lectura del archivo.plp 5")
-					if len(self.cancion) == 0: 
-						self.marca_agregar(tiempo_anterior)
-					else:
-						self.marca_agregar_siguiente(tiempo_anterior)
-						self.avanzar()
-						pasos += 1
-					lista_de_tracks = list(datos)
-					contador = 0
-					for track in lista_de_tracks:
-						if not (track in "#."):
-							self.reiniciar()
-							raise ValueError("Error en lectura del archivo.plp 6")
-						if track == "#":
-							self.track_activar(contador)
-						contador += 1
+					pasos = self._cargar_marcas(tiempo_anterior, datos, pasos)
 				linea = next(lector, None)
 		self.retroceder(pasos)

@@ -20,7 +20,7 @@ class Shell(cmd.Cmd):
 		Se recomienda guardar la cancion actual, 
 		ya que la misma se borrara caso contrario.
 		"""
-		self.reproductor.reiniciar()
+		self.reproductor = Reproductor()
 
 		self.canales = self.reproductor.dar_canales()
 		self.cancion = self.reproductor.dar_cancion()
@@ -42,7 +42,7 @@ class Shell(cmd.Cmd):
 		lo que no siempre podra cargar estos otros archivos.
 		"""
 		try:
-			self.reproductor.cargar(cancion)
+			self.reproductor = Reproductor(cancion)
 		except IOError:
 			print("Comando invalido: archivo no encontrado.")
 			return

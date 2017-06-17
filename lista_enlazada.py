@@ -186,10 +186,15 @@ class IteradorListaEnlazada:
 		Pre: recibe una lista enlazada.
 		""" 
 		self.lista = lista_enlazada
-		self.anterior = None 
+		self.anterior = None
 		self.actual = lista_enlazada.prim
 		self.pila_anteriores = Pila()
 		self.posicion = 0
+
+	def esta_al_final(self):
+		"""Evalua si esta en la posicion final. 
+		Devuelve un booleano."""
+		return not self.actual.prox
 
 	def elemento_actual(self):
 		"""
@@ -203,7 +208,7 @@ class IteradorListaEnlazada:
 		"""
 		Pasa al siguiente elemento de la lista.
 		"""
-		if (not len(self.lista)) or (not self.actual.prox): 
+		if (not len(self.lista)) or (self.esta_al_final()): 
 			raise StopIteration("Esta al final.")
 		self.pila_anteriores.apilar(self.anterior)
 		self.anterior = self.actual
@@ -227,9 +232,11 @@ class IteradorListaEnlazada:
 		Inserta un elemento en la posicion actual del iterador.
 		"""
 		if self.posicion == 0:
-			self.lista.insertar_primero(dato) 
-			self.actual = self.lista.prim 
-			return self.actual.dato
+			self._insertar_principio(dato) 
+			return self.actual.dato 
+		if self.esta_al_final():
+			self._insertar_ultimo(dato)
+			return self.actual.dato 
 		nodo = _Nodo(dato)
 		self.anterior.prox = nodo
 		nodo.prox = self.actual
@@ -237,7 +244,7 @@ class IteradorListaEnlazada:
 		self.lista.len += 1
 		return self.actual.dato
 	
-	def insertar_ultimo(self, dato):
+	def _insertar_ultimo(self, dato):
 		"""
 		Pre: Debe encontrarse el la ultima posicion de la lista enlazada.
 		Post: Inserta un elemento al final de las lista (despues del ultimo elemento).
@@ -250,7 +257,7 @@ class IteradorListaEnlazada:
 		self.actual.prox = nodo
 		self.lista.len += 1
 
-	def insertar_principio(self, dato):
+	def _insertar_principio(self, dato):
 		"""
 		Pre: la lista no esta vacia. y nos encontramos al principio de la misma.
 		Post: Inserta un elemento al principio de la lista

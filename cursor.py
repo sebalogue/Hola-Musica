@@ -1,10 +1,6 @@
-#-------------------------------------------------------------------------
-import lista_enlazada
-import marca_de_tiempo
-#-------------------------------------------------------------------------
-IteradorListaEnlazada = lista_enlazada.IteradorListaEnlazada
-MarcaDeTiempo = marca_de_tiempo.MarcaDeTiempo
-#-------------------------------------------------------------------------
+from lista_enlazada import IteradorListaEnlazada
+from marca_de_tiempo import MarcaDeTiempo
+
 class Cursor:
 	"""
 	Representa un cursor que recorre las marcas de tiempo de una cancion
@@ -92,31 +88,22 @@ class Cursor:
 		"""
 		Pre: recibe una duracion (entero o decimal), y los canales de la cancion (entero).
 		Post: agrega una marca de tiempo en la posicion siguiente del cursor
-		con la duracion indicada.
+		con la duracion indicada. Si esta parado en la ultima posicion, 
+		la marca se agrega despues de esta.
 		"""
-		if (not self.actual) or (self.posicion == (len(self.cancion) - 1)):
-			dato = MarcaDeTiempo(float(duracion), canales)
-			self.iterador.insertar_ultimo(dato)
-			return
-		self.actual = self.iterador.avanzar()
-		self.marca_agregar(float(duracion), canales)
-		self.actual = self.iterador.retroceder()
+		dato = MarcaDeTiempo(float(duracion), canales)
+		self.iterador.insertar_siguiente(dato)
 
 	def marca_agregar_previo(self, duracion, canales):
 		"""
 		Pre: recibe una duracion (entero o decimal), y los canales de la cancion (entero).
 		Post: agrega una marca de tiempo en la posicion anterior del cursor
-		con la duracion indicada.
+		con la duracion indicada. Si esta parada en la primera posicion, la marca se agrega
+		antes de esta, y se actualizan las posiciones.
 		"""
-		if self.posicion == 0:
-			dato = MarcaDeTiempo(float(duracion), canales)
-			self.iterador.insertar_principio(dato)
-			self.posicion += 1
-			return
-		self.actual = self.retroceder()
-		self.marca_agregar(float(duracion), canales)
-		self.actual = self.avanzar()
-		self.actual = self.avanzar()
+		dato = MarcaDeTiempo(float(duracion), canales)
+		self.iterador.insertar_anterior(dato)
+		self.posicion += 1
 
 	def activar_track(self, numero_track):
 		"""

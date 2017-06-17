@@ -192,9 +192,12 @@ class IteradorListaEnlazada:
 		self.posicion = 0
 
 	def esta_al_final(self):
-		"""Evalua si esta en la posicion final. 
-		Devuelve un booleano."""
-		return not self.actual.prox
+		"""
+		Evalua si esta en la posicion final. 
+		Devuelve un True en caso afirmativo, 
+		False caso contrario.
+		"""
+		return self.posicion == (len(self.lista) - 1)
 
 	def elemento_actual(self):
 		"""
@@ -232,11 +235,9 @@ class IteradorListaEnlazada:
 		Inserta un elemento en la posicion actual del iterador.
 		"""
 		if self.posicion == 0:
-			self._insertar_principio(dato) 
-			return self.actual.dato 
-		if self.esta_al_final():
-			self._insertar_ultimo(dato)
-			return self.actual.dato 
+			self.lista.insertar_primero(dato) 
+			self.actual = self.lista.prim 
+			return self.actual.dato
 		nodo = _Nodo(dato)
 		self.anterior.prox = nodo
 		nodo.prox = self.actual
@@ -244,28 +245,39 @@ class IteradorListaEnlazada:
 		self.lista.len += 1
 		return self.actual.dato
 	
-	def _insertar_ultimo(self, dato):
+	def insertar_siguiente(self, dato):
 		"""
-		Pre: Debe encontrarse el la ultima posicion de la lista enlazada.
-		Post: Inserta un elemento al final de las lista (despues del ultimo elemento).
+		Pre: recibe un elemento cualquiera.
+		Post: inserta el elemento recibido en la siguiente posicion 
+		del iterador. Si el iterador esta al final de la lista, 
+		entonces el elemento es insertado despues del ultimo.
 		"""
 		if not self.actual:
-			raise ValueError("Lista Vacia.")
-		if self.actual.prox:
-			raise IndexError("Aun hay elementos adelante.")
-		nodo = _Nodo(dato)
-		self.actual.prox = nodo
-		self.lista.len += 1
+			raise ValueError("No existe un elemento actual.")
+		if self.esta_al_final():
+			nodo = _Nodo(dato)
+			self.actual.prox = nodo
+			self.lista.len += 1
+			return
+		self.avanzar()
+		self.insertar(dato)
+		self.retroceder()
 
-	def _insertar_principio(self, dato):
+	def insertar_anterior(self, dato):
 		"""
-		Pre: la lista no esta vacia. y nos encontramos al principio de la misma.
-		Post: Inserta un elemento al principio de la lista
+		Pre: recibe un elemento cualquiera.
+		Post: inserta el elemento recibido en la anterior posicion 
+		del iterador. Si el iterador esta al principio de la lista, 
+		entonces el elemento es insertado antes del primero.
 		"""
 		if not self.actual:
-			raise ValueError("Lista vacia")
-		if not (self.posicion == 0):
-			raise IndexError("Este no es el principio de la lista")
-		self.anterior = self.lista.insertar_primero(dato)
-		self.pila_anteriores.apilar(None)
-		self.posicion += 1
+			raise ValueError("No existe un elemento actual")
+		if self.posicion == 0:
+			self.anterior = self.lista.insertar_primero(dato)
+			self.pila_anteriores.apilar(None)
+			self.posicion += 1
+			return
+		self.retroceder()
+		self.insertar(dato)
+		self.avanzar()
+		self.avanzar()

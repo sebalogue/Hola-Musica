@@ -117,7 +117,7 @@ class Shell(cmd.Cmd):
 		Pre: recibe una cadena de la forma tal: funcion,frecuencia,volumen.
 		Donde frecuencia y volumen son numeros (enteros o decimales), y 
 		donde funcion es una de las siguiente funciones de sondido:
-		"noise","silence","sine","square" (duty-cycle = 0.15),"triangular".
+		"noise","silence","sine","square" (duty cycle = 0.15),"triangular".
 		Post: Agrega un track con el sonido indicado.
 		"""
 		datos = funcion_frecuencia_volumen.split(",")

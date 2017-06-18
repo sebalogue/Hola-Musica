@@ -114,7 +114,8 @@ class Reproductor:
 		Pre: recibe una posicion. Posicion es un entero.
 		Post: elimina el track de la posicion indicada.
 		"""
-		if int(posicion) < 0 :
+		posicion = int(posicion)
+		if posicion < 0 :
 			raise ValueError("Posicion no valida.")
 		self.tracks.pop(posicion)
 		self.info_tracks.pop(posicion)
@@ -149,8 +150,9 @@ class Reproductor:
 		Post: Devuelve una lista de sonidos habilitados.
 		"""
 		lista_de_sonidos = []
-		for indice in  tracks_habilitados:
-			lista_de_sonidos.append(self.tracks[indice]) #Podriamos validar esto de alguna manera?.
+		for indice in tracks_habilitados:
+			if (0<= indice < len(self.tracks)):
+				lista_de_sonidos.append(self.tracks[indice])
 		return lista_de_sonidos
 
 	def reproducir(self, tiempos_y_habilitados):
@@ -305,7 +307,7 @@ class Reproductor:
 		for track in lista_de_tracks:
 			if not (track in "#."):
 				raise ValueError("Error en lectura del archivo.plp 6")
-			if track == "#":
+			if (track == "#") and (contador < self.canales):
 				self.track_activar(contador)
 			contador += 1
 		return pasos
@@ -313,11 +315,11 @@ class Reproductor:
 	def cargar(self, cancion):
 		"""
 		Carga una cancion al reproductor.
-		Cancion es un archivo.plp con formato de cancion.
+		Cancion es una ruta a un archivo.plp con formato de cancion.
 		"""	
 		pasos = 0
-		with open(cancion) as _cancion:
-			lector = csv.reader(_cancion, delimiter = ",")
+		with open(cancion) as _ :
+			lector = csv.reader( _ , delimiter = ",")
 			linea = next(lector, None)
 			tiempo_anterior = None
 			while linea:

@@ -120,11 +120,13 @@ class ListaEnlazada():
 		Elimina el elemento de la posicion indicada (entero), si no 
 		se especifica una posicion, borra el ultimo elemento
 		"""
+		if (self.len == 0):
+			raise ValueError("Lista vacia")
 		if posicion is None:
 			posicion = self.len - 1
 		if (posicion < 0) or (posicion >= self.len):
 			raise IndexError("Indice fuera de rango")
-		if (posicion == 0) or (self.len == 0):
+		if (posicion == 0):
 	 		return self.borrar_primero()
 		anterior = self.prim
 		actual = self.prim.prox

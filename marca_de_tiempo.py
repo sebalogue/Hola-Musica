@@ -11,9 +11,7 @@ class MarcaDeTiempo:
 		"""
 		self.tiempo = float(tiempo)
 		self.canales = int(canales) 
-		self.tracks = []
-		for track in range(canales):
-			self.tracks.append(False)
+		self.tracks = [False for track in range(canales)]
 
 	def track_activar(self, track):
 		"""
